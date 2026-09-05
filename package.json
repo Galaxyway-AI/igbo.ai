@@ -1,0 +1,40 @@
+{
+  "name": "igbo-ai",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev --host 0.0.0.0",
+    "build": "astro build",
+    "preview": "wrangler dev --port 8787",
+    "check": "astro check && tsc -p tsconfig.worker.json --noEmit",
+    "test": "vitest run",
+    "test:e2e": "playwright test",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "db:local": "wrangler d1 migrations apply igbo-ai --local",
+    "types": "wrangler types --strict-vars=false",
+    "deploy:staging": "npm run build && wrangler deploy --env staging",
+    "deploy": "npm run build && wrangler deploy"
+  },
+  "dependencies": {
+    "@fontsource-variable/manrope": "^5.2.0",
+    "@fontsource-variable/noto-serif": "^5.2.0",
+    "astro": "^7.3.1",
+    "jose": "^6.0.0",
+    "zod": "^3.25.0"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.4",
+    "@axe-core/playwright": "^4.13.0",
+    "@playwright/test": "^1.55.0",
+    "eslint": "^9.34.0",
+    "miniflare": "^5.20260903.0-alpha",
+    "prettier": "^3.6.0",
+    "prettier-plugin-astro": "^0.14.0",
+    "typescript": "^5.9.0",
+    "typescript-eslint": "^8.40.0",
+    "vitest": "^3.2.0",
+    "wrangler": "^4.30.0"
+  }
+}

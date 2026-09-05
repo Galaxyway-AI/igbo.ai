@@ -1,0 +1,210 @@
+---
+import Layout from '../layouts/Layout.astro';
+import ToneVisual from '../components/ToneVisual.astro';
+import SectionHeading from '../components/SectionHeading.astro';
+import TechnologyGrid from '../components/TechnologyGrid.astro';
+---
+
+<Layout>
+  <section class="hero container">
+    <div class="hero-copy">
+      <div class="hero-status">
+        <i class="live-dot"></i> AN OPEN LANGUAGE TECHNOLOGY INITIATIVE
+      </div><h1>Igbo AI<span class="headline-dot">.</span></h1><p
+        class="hero-statement"
+      >
+        A language rich in meaning.<br />A future <em>worth building.</em>
+      </p><p class="hero-description">
+        Building an open foundation for AI that can understand, pronounce and
+        speak Igbo naturally.
+      </p><div class="hero-actions">
+        <a class="button" href="/research">Explore the Project <span>↗</span></a
+        ><a class="text-link" href="/collaborate"
+          >Collaborate with us <span>↗</span></a>
+      </div><div class="hero-credit">
+        <span class="small-mark">✳</span><span
+          >Led by <a href="https://www.galaxyway.ai">Galaxyway AI</a><br
+          /><small>Built for open collaboration.</small></span>
+      </div>
+    </div><ToneVisual />
+  </section>
+  <div class="status-strip">
+    <div class="container">
+      <span><i class="live-dot"></i> CURRENTLY IN PLANNING & RESEARCH</span><p>
+        Starting with the foundations. Building in the open.
+      </p><a href="/roadmap">Follow our progress <span>↗</span></a>
+    </div>
+  </div>
+  <section class="section container challenge">
+    <div>
+      <span class="eyebrow">01 / THE CHALLENGE</span><h2>
+        A language should<br />never be <em>an afterthought.</em>
+      </h2>
+    </div><div>
+      <p class="lead">
+        AI is learning to speak to the world.<br />Igbo deserves to be part of
+        that conversation.
+      </p><p>
+        But speaking Igbo naturally takes more than reading letters. Tone
+        changes meaning. Diacritics matter. Dialects carry identity. Too often,
+        these details get lost in today’s speech systems.
+      </p><p>
+        We’re working towards language technology that takes all of this
+        seriously — with native speakers at the heart of how quality is defined.
+      </p><a href="/research" class="text-link"
+        >Understand the research <span>↗</span></a>
+    </div>
+  </section>
+  <section class="section soft-section">
+    <div class="container">
+      <SectionHeading
+        eyebrow="02 / THE FOUNDATIONS"
+        title="One language. A connected ecosystem."
+        description="Six building blocks for better Igbo language technology. An open, long-term research programme."
+        href="/technology"
+        label="What we’re building"
+      /><TechnologyGrid />
+    </div>
+  </section>
+  <section class="section architecture-section">
+    <div class="container">
+      <span class="eyebrow">03 / FROM LANGUAGE TO VOICE</span><h2>
+        Natural speech starts<br />with <em>understanding.</em>
+      </h2><p>
+        Every layer matters. We’re exploring how linguistic knowledge<br
+          class="desktop-only"
+        /> can connect written Igbo to more natural speech.
+      </p><div class="architecture-flow">
+        {
+          [
+            'Written Igbo',
+            'Context',
+            'Tone & diacritics',
+            'Pronunciation',
+            'Phonemes',
+            'Dialect',
+            'Natural speech',
+          ].map((label, i) => (
+            <div>
+              <span>{label}</span>
+              {i < 6 && <b aria-hidden="true">→</b>}
+            </div>
+          ))
+        }
+      </div><div class="architecture-foot">
+        <span>OUR RESEARCH HYPOTHESIS</span><p>
+          Can explicit tone, phoneme and dialect supervision make Igbo AI speech
+          measurably more native-sounding?
+        </p><a class="light-link" href="/research#hypothesis"
+          >Explore our approach ↗</a>
+      </div>
+    </div>
+  </section>
+  <section class="section container ecosystem">
+    <SectionHeading
+      eyebrow="04 / A SHARED FOUNDATION"
+      title="Building on existing work."
+      description="Important datasets, models and communities have already laid valuable foundations. Our ambition is to build upon, connect and extend that work."
+      href="/research#landscape"
+      label="Explore the landscape"
+    /><div class="ecosystem-names">
+      <span>Nkọwa okwu <small>IgboAPI</small></span><span>Masakhane</span><span
+        >Common Voice</span
+      ><span>Google <small>FLEURS</small></span><span>African Voices</span>
+    </div><p class="fine-print">
+      Existing work and resources informing the research landscape. These are
+      not announced partnerships.
+    </p>
+  </section>
+  <section class="section roadmap-preview soft-section">
+    <div class="container">
+      <SectionHeading
+        eyebrow="05 / THE ROAD AHEAD"
+        title="Ambitious by vision. Deliberate by design."
+        href="/roadmap"
+        label="View the full roadmap"
+      /><div class="preview-phases">
+        {
+          [
+            [
+              '00',
+              'Landscape & Research',
+              'Understand the field. Define the questions.',
+              'Research',
+            ],
+            [
+              '01',
+              'Linguistic Foundation',
+              'Build the language and data foundations.',
+              'Planned',
+            ],
+            [
+              '02',
+              'IgboSpeechBench',
+              'Measure what matters to native speakers.',
+              'Planned',
+            ],
+            [
+              '03',
+              'IgboSpeech TTS',
+              'Explore more natural Igbo speech.',
+              'Planned',
+            ],
+          ].map(([num, title, desc, status]) => (
+            <a
+              href={`/roadmap#phase-${Number(num)}`}
+              class:list={['preview-phase', { current: num === '00' }]}
+            >
+              <>
+                <div class="phase-line">
+                  <>
+                    <span>{num}</span>
+                    <i />
+                  </>
+                </div>
+                <span class="status">{status}</span>
+                <h3>{title}</h3>
+                <p>{desc}</p>
+              </>
+            </a>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+  <section class="section container lab-preview">
+    <div>
+      <span class="eyebrow">06 / THE IGBO AI LAB</span><h2>
+        A space to explore.<br />A voice <em>taking shape.</em>
+      </h2><p>
+        A future home for conversation, speech experiments and native-speaker
+        evaluation. Built around the language. Shaped by the people who speak
+        it.
+      </p><a class="text-link" href="/lab">Explore the Lab <span>↗</span></a>
+    </div><a href="/lab" class="mini-lab"
+      ><div>
+        <span class="lab-symbol">✳</span><span class="status">Coming soon</span>
+      </div><p lang="ig">Kedu ihe ị chọrọ ịkọrọ m?</p><small
+        >A future conversation starts here.</small
+      ><div class="fake-input">
+        <span>Type a message…</span><span>♩ <b>↑</b></span>
+      </div><span class="fine-print"
+        >Interface preview · No AI model connected</span
+      ></a>
+  </section>
+  <section class="join-section">
+    <div class="container">
+      <span class="eyebrow">A SHARED LANGUAGE. A SHARED POSSIBILITY.</span><h2>
+        The next chapter of Igbo<br />technology needs <em>many voices.</em>
+      </h2><p>
+        Linguists. Researchers. Native speakers. Developers.<br />There is a
+        place for your knowledge here.
+      </p><div class="center-actions">
+        <a class="button" href="/collaborate"
+          >Collaborate with us <span>↗</span></a
+        ><a class="button outline" href="/support"
+          >Support Igbo AI <span>↗</span></a>
+      </div>
+    </div>
+  </section>
+</Layout>

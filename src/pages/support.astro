@@ -1,0 +1,161 @@
+---
+import Layout from '../layouts/Layout.astro';
+import PageHero from '../components/PageHero.astro';
+import ConsentFields from '../components/ConsentFields.astro';
+---
+
+<Layout title="Support Igbo AI"
+  ><PageHero
+    eyebrow="SUPPORT THE FOUNDATIONS"
+    title="Help make room for Igbo in the future of AI."
+    description="Support can help fund native-speaker recordings, linguistic annotation, research, computing resources, open-source development and community participation."
+  /><section class="section container two-col">
+    <div>
+      <h2>Support meaningful work.</h2><div class="prose">
+        <h3>People & language</h3><p>
+          Native-speaker participation, responsible recording sessions and
+          careful linguistic annotation.
+        </p><h3>Research & infrastructure</h3><p>
+          Model experiments, transparent evaluation, compute and reusable
+          engineering.
+        </p><h3>A clear relationship</h3><p>
+          Igbo AI is an initiative led by Galaxyway AI. Project support is not
+          presented as a charitable donation, and no tax relief is promised.
+        </p><p>
+          <a href="/support/transparency">Funding transparency ↗</a><br /><a
+            href="/supporters">Public acknowledgements ↗</a>
+        </p>
+      </div><div class="notice">
+        Support payments will open once the payment account and receiving entity
+        details are confirmed. No money is collected by this preview.
+      </div>
+    </div><form class="panel" id="support-form">
+      <h2 style="font-size:27px">Support the project</h2><p>
+        Choose an amount in GBP. One-time support.
+      </p><div class="support-amounts">
+        {
+          [10, 25, 50, 100].map((n, i) => (
+            <button
+              type="button"
+              data-amount={n}
+              aria-pressed={i === 1 ? 'true' : 'false'}
+            >
+              £{n}
+            </button>
+          ))
+        }
+      </div><div class="form-grid">
+        <label class="field full"
+          >Amount (GBP)<input
+            name="amount"
+            type="number"
+            min="1"
+            max="10000"
+            step="1"
+            value="25"
+            required
+          /></label
+        ><label class="field"
+          >Name *<input
+            name="name"
+            required
+            maxlength="120"
+            autocomplete="name"
+          /></label
+        ><label class="field"
+          >Email *<input
+            type="email"
+            name="email"
+            required
+            maxlength="254"
+            autocomplete="email"
+          /></label>
+      </div><label class="check"
+        ><input
+          type="checkbox"
+          name="public_consent"
+          id="public-consent"
+        /><span
+          >I would like my name to appear on the Igbo AI Supporters page.</span
+        ></label
+      ><div id="public-fields" hidden>
+        <div class="form-grid">
+          <label class="field full"
+            >Public display name<input
+              name="public_display_name"
+              maxlength="120"
+            /></label
+          ><label class="field"
+            >Organisation<input name="organisation" maxlength="160" /></label
+          ><label class="field"
+            >Public website<input
+              name="website"
+              type="url"
+              maxlength="500"
+            /></label>
+        </div><label class="check"
+          ><input name="display_level" type="checkbox" /><span
+            >Show my contribution level, when available.</span
+          ></label
+        ><label class="check"
+          ><input name="display_amount" type="checkbox" /><span
+            >Show my contribution amount.</span
+          ></label
+        ><p class="fine-print">
+          Public acknowledgement requires a completed payment and administrator
+          approval.
+        </p>
+      </div><p class="fine-print" style="margin-top:18px">
+        Anonymous by default. Your name and amount stay private unless you
+        explicitly choose otherwise.
+      </p><label class="check"
+        ><input type="checkbox" required name="privacy_consent" /><span
+          >I have read the <a href="/privacy">privacy notice</a>.</span
+        ></label
+      ><div data-turnstile></div><p class="form-status" role="status">
+      </p><button class="button form-submit" type="submit"
+        >Check support availability ↗</button>
+    </form>
+  </section><section class="section soft-section" id="sponsorship">
+    <div class="container two-col">
+      <div>
+        <span class="eyebrow">ORGANISATIONAL SPONSORSHIP</span><h2>
+          Invest in a shared foundation.
+        </h2><p style="margin-top:20px">
+          Discuss research funding, compute, recording programmes, tools or
+          community participation. Sponsorship scope and recognition are agreed
+          individually.
+        </p>
+      </div><form class="panel" data-api-form="sponsorship">
+        <div class="form-grid">
+          <label class="field"
+            >Name *<input name="name" required maxlength="120" /></label
+          ><label class="field"
+            >Email *<input
+              type="email"
+              name="email"
+              required
+              maxlength="254"
+            /></label
+          ><label class="field full"
+            >Organisation *<input
+              name="organisation"
+              required
+              maxlength="160"
+            /></label
+          ><label class="field full"
+            >How would you like to support the project? *<textarea
+              name="message"
+              required
+              minlength="20"
+              maxlength="4000"></textarea></label>
+        </div><ConsentFields /><button class="button form-submit" type="submit"
+          >Discuss sponsorship ↗</button>
+      </form>
+    </div>
+  </section></Layout
+>
+<script>
+  import '../scripts/forms';
+  import '../scripts/support';
+</script>

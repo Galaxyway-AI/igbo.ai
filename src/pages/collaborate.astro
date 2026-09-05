@@ -1,0 +1,117 @@
+---
+import Layout from '../layouts/Layout.astro';
+import PageHero from '../components/PageHero.astro';
+import ConsentFields from '../components/ConsentFields.astro';
+import { roles } from '../data/project';
+---
+
+<Layout title="Collaborate with us"
+  ><PageHero
+    eyebrow="OPEN COLLABORATION"
+    title="Your knowledge belongs in this conversation."
+    description="Help build better Igbo language technology. We welcome individuals, communities and institutions who want to shape the research with us."
+  /><section class="section container two-col">
+    <aside>
+      <h2>Many ways to contribute.</h2><div class="prose">
+        <h3>Linguists & dialect experts</h3><p>
+          Shape phonology, tone, orthography, IPA and dialect review.
+        </p><h3>Native speakers</h3><p>
+          Bring pronunciation knowledge and perspectives on naturalness. Voice
+          collection will open only with approved contributor terms.
+        </p><h3>Researchers & developers</h3><p>
+          Explore TTS, ASR, NLP, benchmarks and reusable open-source tools.
+        </p><h3>Universities & organisations</h3><p>
+          Discuss research, student participation, datasets, compute, grants and
+          community partnerships.
+        </p>
+      </div><div class="notice">
+        Igbo AI is led by Galaxyway AI and intended to grow through open
+        collaboration. Applications are an expression of interest, not a
+        commitment to a contract or partnership.
+      </div>
+    </aside><form class="panel" data-api-form="collaborate">
+      <h2 style="font-size:27px;margin-bottom:12px">
+        Let’s build a foundation.
+      </h2><p style="margin-bottom:25px">
+        Tell us a little about yourself. Fields marked * are required.
+      </p><div class="form-grid">
+        <label class="field"
+          >Full name *<input
+            name="name"
+            autocomplete="name"
+            required
+            maxlength="120"
+          /></label
+        ><label class="field"
+          >Email *<input
+            name="email"
+            type="email"
+            autocomplete="email"
+            required
+            maxlength="254"
+          /></label
+        ><label class="field"
+          >Organisation<input
+            name="organisation"
+            autocomplete="organization"
+            maxlength="160"
+          /></label
+        ><label class="field"
+          >Job title / role<input
+            name="role"
+            autocomplete="organization-title"
+            maxlength="120"
+          /></label
+        ><label class="field"
+          >Country<input
+            name="country"
+            autocomplete="country-name"
+            maxlength="100"
+          /></label
+        ><label class="field"
+          >Website / profile URL<input
+            name="website"
+            type="url"
+            placeholder="https://"
+            maxlength="500"
+          /></label
+        ><label class="field full"
+          >Collaboration type *<select name="collaboration_type" required
+            ><option value="">Select the closest fit</option>{
+              roles.map((role) => <option>{role}</option>)
+            }</select
+          ></label
+        ><label class="field full"
+          >Relevant expertise<textarea name="expertise" maxlength="2000"
+          ></textarea></label
+        ><label class="field full"
+          >Igbo dialect / variety, if relevant<input
+            name="dialect"
+            maxlength="160"
+          /><small>Describe your variety in your own words.</small></label
+        ><label class="field full"
+          >Research interests<input
+            name="research_interests"
+            maxlength="1000"
+          /></label
+        ><label class="field full"
+          >How would you like to contribute? *<textarea
+            name="message"
+            required
+            minlength="20"
+            maxlength="4000"></textarea></label
+        ><label class="field full"
+          >Existing project / resource URL<input
+            name="resource_url"
+            type="url"
+            placeholder="https://"
+            maxlength="500"
+          /></label>
+      </div><ConsentFields /><button class="button form-submit" type="submit"
+        >Send expression of interest ↗</button>
+    </form>
+  </section></Layout
+>
+<script>
+  import '../scripts/forms';
+</script>

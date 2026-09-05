@@ -1,0 +1,167 @@
+---
+import Layout from '../layouts/Layout.astro';
+import PageHero from '../components/PageHero.astro';
+import { hypothesis } from '../data/project';
+const resources = [
+  [
+    'Nkọwa okwu / IgboAPI',
+    'Dictionary & pronunciation',
+    'A reference point for Igbo lexical resources and language tooling.',
+    'https://igboapi.com',
+  ],
+  [
+    'Mozilla Common Voice',
+    'Speech data',
+    'A community speech data initiative to examine for language coverage, consent and licensing.',
+    'https://commonvoice.mozilla.org',
+  ],
+  [
+    'Google FLEURS',
+    'Multilingual speech',
+    'A multilingual speech benchmark informing evaluation design.',
+    'https://huggingface.co/datasets/google/fleurs',
+  ],
+  [
+    'Masakhane',
+    'Research community',
+    'African language NLP research and open collaboration.',
+    'https://www.masakhane.io',
+  ],
+  [
+    'African Voices / Data Science Nigeria',
+    'Speech resources',
+    'An initiative to examine within the African speech data landscape.',
+    'https://www.datasciencenigeria.org',
+  ],
+  [
+    'Google WAXAL',
+    'Speech research',
+    'Part of the landscape review for African language speech resources.',
+    'https://research.google',
+  ],
+  [
+    'NCAIR / Awarri',
+    'Language initiatives',
+    'Nigerian language technology efforts included in our landscape review.',
+    'https://ncair.nitda.gov.ng',
+  ],
+];
+---
+
+<Layout
+  title="Research"
+  description="Exploring tone, phonemes, dialect and native-speaker evaluation for more natural Igbo speech technology."
+  ><PageHero
+    eyebrow="RESEARCH / PLANNING & RESEARCH"
+    title="Taking the language seriously. Testing the possibilities."
+    description="Our focus is native-quality pronunciation: tone, phonetics, dialect and the evidence needed to know when a system is improving."
+  /><section class="section container two-col">
+    <aside>
+      <span class="eyebrow">THE CHALLENGE</span><h2>
+        More than<br />reading letters.
+      </h2><div class="role-list">
+        <span>Tone</span><span>Diacritics</span><span>Dialect</span><span
+          >Context</span
+        ><span>Prosody</span>
+      </div>
+    </aside><div class="prose">
+      <p class="lead">For a tonal language, sound is part of meaning.</p><p>
+        A speech system may recognise the letters in an Igbo word and still
+        pronounce it incorrectly. Tone, vowel distinctions, context and rhythm
+        all affect how an utterance is heard. Personal names, place names and
+        code-switching create further challenges.
+      </p><p>
+        Dialect diversity also matters. Evaluation should respect different
+        legitimate ways of speaking Igbo, rather than flattening them into one
+        artificial standard.
+      </p><p>
+        Limited high-quality, appropriately licensed speech data can make
+        progress harder. Our approach starts with data provenance, linguistic
+        annotation and the people who speak the language.
+      </p>
+    </div>
+  </section><section class="soft-section section" id="hypothesis">
+    <div class="container prose">
+      <span class="eyebrow">THE PRIMARY RESEARCH QUESTION</span><h2
+        style="margin-top:0"
+      >
+        {hypothesis}
+      </h2><p>
+        This is a hypothesis to investigate, not a performance claim. We plan to
+        compare documented baselines using both automated measures and
+        native-speaker evaluation.
+      </p><h3>How we intend to test it</h3><ol>
+        <li>
+          Review existing data, models, licences and evaluation methods.
+        </li><li>
+          Design consented, linguistically annotated evaluation material.
+        </li><li>
+          Establish character-based and general-purpose baselines.
+        </li><li>Compare explicit tone, phoneme and dialect supervision.</li><li
+        >
+          Use blind native-speaker comparisons, report uncertainty and publish
+          limitations.
+        </li>
+      </ol><p>
+        We aim to connect these capabilities in reusable infrastructure. The
+        landscape review will determine where to extend existing work and where
+        new research is warranted.
+      </p>
+    </div>
+  </section><section class="section container" id="landscape">
+    <span class="eyebrow">THE EXISTING LANDSCAPE</span><h2>
+      Important work already exists.
+    </h2><p style="max-width:730px;margin-top:20px">
+      These resources and communities inform the research landscape. Inclusion
+      does not imply a partnership, endorsement, data access or permission to
+      reuse material. Coverage and licences must be checked per resource.
+    </p><div class="resource-grid">
+      {
+        resources.map(([name, type, desc, url]) => (
+          <article class="resource-card">
+            <>
+              <span class="eyebrow">{type}</span>
+              <h3>{name}</h3>
+              <p>{desc}</p>
+              <a href={url} target="_blank" rel="noopener noreferrer">
+                Visit source ↗
+              </a>
+            </>
+          </article>
+        ))
+      }
+    </div><div class="panel">
+      <h3>Further literature review</h3><p>
+        IgboBERT, IgboBERTa, academic work on diacritic restoration and Igbo
+        NLP, and independent ASR and TTS projects are part of the planned
+        review. Verified paper-level citations, versions and licence notes will
+        be added as records are reviewed.
+      </p>
+    </div><p class="fine-print" style="margin-top:20px">
+      Programme background: <a href="https://www.galaxyway.ai/research/igbo-ai"
+        >Galaxyway AI’s Igbo AI research initiative ↗</a>
+    </p><div id="managed-resources" class="resource-grid"></div>
+  </section></Layout
+>
+<script>
+  fetch('/api/public/resources')
+    .then((r) => (r.ok ? r.json() : []))
+    .then((rows: { title: string; summary: string; url: string }[]) => {
+      const root = document.querySelector('#managed-resources');
+      rows.forEach((row) => {
+        const article = document.createElement('article');
+        article.className = 'resource-card';
+        const h = document.createElement('h3');
+        h.textContent = row.title;
+        const p = document.createElement('p');
+        p.textContent = row.summary;
+        const a = document.createElement('a');
+        a.textContent = 'Visit reference ↗';
+        a.href = row.url;
+        a.rel = 'noopener noreferrer';
+        article.append(h, p, a);
+        root?.append(article);
+      });
+    })
+    .catch(() => {});
+</script>

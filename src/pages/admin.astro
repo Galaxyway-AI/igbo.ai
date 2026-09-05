@@ -1,0 +1,64 @@
+---
+import Layout from '../layouts/Layout.astro';
+import PageHero from '../components/PageHero.astro';
+---
+
+<Layout title="Administration" noindex
+  ><PageHero
+    eyebrow="PRIVATE ADMINISTRATION"
+    title="The research desk."
+    description="Manage the programme, review expressions of interest and publish verified progress."
+  /><section class="section container">
+    <div id="admin-lock" class="notice" role="status">
+      Checking administrator access…
+    </div><div id="admin-workspace" hidden>
+      <div class="admin-layout">
+        <nav class="admin-nav" aria-label="Administration sections">
+          {
+            [
+              ['dashboard', 'Overview'],
+              ['collaborators', 'Collaborators'],
+              ['sponsorship', 'Sponsorship enquiries'],
+              ['supporters', 'Supporter approval'],
+              ['roadmap', 'Roadmap'],
+              ['updates', 'Research updates'],
+              ['resources', 'Research resources'],
+              ['campaigns', 'Funding campaigns'],
+              ['organisations', 'Organisations'],
+              ['projects', 'Project statuses'],
+              ['feedback', 'Lab feedback'],
+              ['email', 'Email outbox'],
+              ['audit', 'Audit log'],
+              ['settings', 'Site settings'],
+            ].map(([key, label]) => (
+              <button
+                data-admin-section={key}
+                aria-pressed={key === 'dashboard' ? 'true' : 'false'}
+              >
+                {label}
+              </button>
+            ))
+          }
+        </nav><div class="admin-content">
+          <h2 id="admin-title" style="font-size:28px;margin-bottom:20px">
+            Overview
+          </h2><div style="display:flex;gap:12px;margin-bottom:20px">
+            <input
+              type="search"
+              class="admin-search"
+              id="admin-search"
+              placeholder="Search loaded records…"
+              aria-label="Search records"
+            /><button class="button" id="admin-create" hidden>Create</button>
+          </div><p id="admin-status" role="status" class="form-status"></p><div
+            id="admin-records"
+          >
+          </div>
+        </div>
+      </div>
+    </div>
+  </section></Layout
+>
+<script>
+  import '../scripts/admin';
+</script>

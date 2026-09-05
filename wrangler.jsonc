@@ -1,0 +1,62 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "igbo-ai",
+  "main": "worker/index.ts",
+  "compatibility_date": "2026-09-05",
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS",
+    "run_worker_first": true,
+  },
+  "observability": {
+    "enabled": true,
+    "head_sampling_rate": 1,
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "igbo-ai",
+      "database_id": "00000000-0000-0000-0000-000000000000",
+      "migrations_dir": "migrations",
+    },
+  ],
+  "vars": {
+    "ENVIRONMENT": "production",
+    "SITE_URL": "https://igbo.ai",
+    "TURNSTILE_SITE_KEY": "",
+    "ACCESS_TEAM_DOMAIN": "",
+    "ACCESS_AUD": "",
+    "ADMIN_EMAILS": "admin@igbo.ai",
+    "EMAIL_ENDPOINT": "",
+    "EMAIL_FROM": "",
+    "ADMIN_NOTIFICATION_EMAIL": "",
+    "PAYMENT_ENDPOINT": "",
+    "AI_ENDPOINT": "",
+  },
+  "env": {
+    "staging": {
+      "name": "igbo-ai-staging",
+      "vars": {
+        "ENVIRONMENT": "staging",
+        "SITE_URL": "https://igbo-ai-staging.emailgalaxyway.workers.dev",
+        "TURNSTILE_SITE_KEY": "",
+        "ACCESS_TEAM_DOMAIN": "emailgalaxyway.cloudflareaccess.com",
+        "ACCESS_AUD": "72fbd4e78674f309cbfd17aa3381f55367e492b87c6b1d18161aaca8222461ad",
+        "ADMIN_EMAILS": "admin@igbo.ai",
+        "EMAIL_ENDPOINT": "",
+        "EMAIL_FROM": "",
+        "ADMIN_NOTIFICATION_EMAIL": "",
+        "PAYMENT_ENDPOINT": "",
+        "AI_ENDPOINT": "",
+      },
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "igbo-ai-staging",
+          "database_id": "7043f2fb-8667-462d-8901-b70699fe6da0",
+          "migrations_dir": "migrations",
+        },
+      ],
+    },
+  },
+}

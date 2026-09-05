@@ -1,0 +1,45 @@
+---
+import { technologies } from '../data/project';
+---
+
+<div class="technology-grid">
+  {
+    technologies.map((tech, i) => (
+      <a class="technology-card" href={`/technology/${tech.slug}`}>
+        <>
+          <div class="card-top">
+            <>
+              <span class="tech-icon" aria-hidden="true">
+                {tech.icon}
+              </span>
+              <span class="status" data-project-status={tech.slug}>
+                {tech.status}
+              </span>
+            </>
+          </div>
+          <span class="card-category">
+            0{i + 1} / {tech.category}
+          </span>
+          <h3>{tech.name}</h3>
+          <p>{tech.description}</p>
+          <span class="card-arrow" aria-hidden="true">
+            ↗
+          </span>
+        </>
+      </a>
+    ))
+  }
+</div>
+<script>
+  fetch('/api/public/projects')
+    .then((r) => (r.ok ? r.json() : []))
+    .then((rows: { slug: string; status: string }[]) =>
+      rows.forEach((row) => {
+        const el = document.querySelector(
+          `[data-project-status="${row.slug}"]`,
+        );
+        if (el) el.textContent = row.status;
+      }),
+    )
+    .catch(() => {});
+</script>

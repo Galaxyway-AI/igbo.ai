@@ -1,0 +1,198 @@
+---
+import Layout from '../layouts/Layout.astro';
+import PageHero from '../components/PageHero.astro';
+---
+
+<Layout title="Igbo AI Lab"
+  ><PageHero
+    eyebrow="THE IGBO AI LAB / COMING SOON"
+    title="The beginning of a conversation."
+    description="A future space to explore Igbo conversation, speech and pronunciation. This is an interface preview; no model or recording service is connected."
+  /><section class="section container">
+    <div class="lab-shell">
+      <aside class="lab-sidebar">
+        <span class="eyebrow">EXPERIMENT WORKSPACE</span><div
+          class="lab-tabs"
+          role="tablist"
+          aria-label="Lab experiences"
+        >
+          <button
+            role="tab"
+            id="chat-tab"
+            data-lab-tab="chat"
+            aria-controls="chat-panel"
+            aria-selected="true">✳ &nbsp; Igbo Chat</button
+          ><button
+            role="tab"
+            id="speech-tab"
+            data-lab-tab="speech"
+            aria-controls="speech-panel"
+            aria-selected="false"
+            tabindex="-1">≋ &nbsp; Speech studio</button
+          ><button
+            role="tab"
+            id="evaluation-tab"
+            data-lab-tab="evaluation"
+            aria-controls="evaluation-panel"
+            aria-selected="false"
+            tabindex="-1">⌁ &nbsp; Evaluation</button>
+        </div><p>
+          Designed for future conversation, speech and native-speaker
+          evaluation.
+        </p><p style="margin-top:20px">
+          <a href="/ethics">Our data & voice principles ↗</a>
+        </p>
+      </aside><div class="lab-main">
+        <div class="lab-toolbar">
+          <h2>Igbo AI Lab</h2><span class="status">Interface preview</span>
+        </div><div
+          class="lab-panel"
+          id="chat-panel"
+          role="tabpanel"
+          aria-labelledby="chat-tab"
+        >
+          <div class="lab-conversation">
+            <span class="lab-symbol">✳</span><h3 lang="ig">
+              Kedu ihe ị chọrọ ịkọrọ m?
+            </h3><p>
+              A future conversation starts here. Explore the interface while we
+              build the foundations for natural Igbo language technology.
+            </p><div class="suggestions">
+              <button data-prompt="Help me understand Igbo tones"
+                >Explore Igbo tones</button
+              ><button data-prompt="Tell me about Igbo pronunciation"
+                >Pronunciation practice</button
+              ><button data-prompt="Explain an Igbo proverb"
+                >Words & proverbs</button>
+            </div>
+          </div><form id="lab-form">
+            <div class="lab-composer">
+              <button
+                type="button"
+                disabled
+                aria-label="Voice recording coming soon">♩</button
+              ><textarea
+                id="lab-message"
+                rows="1"
+                aria-label="Message"
+                placeholder="Type a message…"
+                maxlength="2000"></textarea><button
+                type="submit"
+                aria-label="Send message"
+                class="button">↑</button>
+            </div><div class="lab-controls">
+              <span>Language: Igbo</span><label
+                >Dialect <select disabled
+                  ><option>Research selection pending</option></select
+                ></label
+              ><label
+                >Voice <select disabled><option>Coming soon</option></select
+                ></label>
+            </div><p id="lab-status" class="form-status" role="status"></p>
+          </form>
+        </div><div
+          class="lab-panel"
+          id="speech-panel"
+          role="tabpanel"
+          aria-labelledby="speech-tab"
+          hidden
+        >
+          <div class="lab-conversation">
+            <span class="lab-symbol">≋</span><h3>From text to voice.</h3><p>
+              Speech synthesis and recognition are planned. Reference
+              recordings, transcripts and accessible playback will appear when a
+              reviewed provider is connected.
+            </p>
+          </div><label class="field"
+            >Igbo text<textarea
+              placeholder="Enter Igbo text to explore the planned interface…"
+              maxlength="2000"></textarea></label
+          ><div class="lab-controls">
+            <button class="button" disabled
+              >Generate speech · Coming soon</button
+            ><button disabled aria-label="Play generated audio">Play</button
+            ><button disabled>Stop</button>
+          </div>
+        </div><div
+          class="lab-panel"
+          id="evaluation-panel"
+          role="tabpanel"
+          aria-labelledby="evaluation-tab"
+          hidden
+        >
+          <div class="lab-conversation">
+            <span class="lab-symbol">⌁</span><h3>
+              Quality, heard by people.
+            </h3><p>
+              Future blind comparisons will ask native speakers to evaluate
+              pronunciation, tone, naturalness and dialect authenticity. No
+              study is active.
+            </p>
+          </div><div class="resource-grid">
+            <div class="panel">
+              <h3>Audio A</h3><button disabled class="button outline"
+                >Play sample A</button>
+            </div><div class="panel">
+              <h3>Audio B</h3><button disabled class="button outline"
+                >Play sample B</button>
+            </div>
+          </div><label class="field"
+            >Which sounds more natural?<select disabled
+              ><option>Study coming soon</option><option>A</option><option
+                >B</option
+              ><option>About the same</option><option>Neither</option></select
+            ></label>
+        </div>
+      </div>
+    </div><div class="notice">
+      This preview does not generate AI responses, play synthetic Igbo speech or
+      collect recordings. Model provenance and limitations will be displayed
+      with any future experiment.
+    </div>
+  </section></Layout
+>
+<script>
+  const tabs = [
+    ...document.querySelectorAll<HTMLButtonElement>('[data-lab-tab]'),
+  ];
+  function activate(tab: HTMLButtonElement) {
+    tabs.forEach((t) => {
+      const selected = t === tab;
+      t.setAttribute('aria-selected', String(selected));
+      t.tabIndex = selected ? 0 : -1;
+      document
+        .getElementById(`${t.dataset.labTab}-panel`)
+        ?.toggleAttribute('hidden', !selected);
+    });
+  }
+  tabs.forEach((tab, i) => {
+    tab.addEventListener('click', () => activate(tab));
+    tab.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+        e.preventDefault();
+        const next =
+          tabs[
+            (i + (e.key === 'ArrowRight' ? 1 : tabs.length - 1)) % tabs.length
+          ];
+        activate(next);
+        next.focus();
+      }
+    });
+  });
+  const input = document.querySelector<HTMLTextAreaElement>('#lab-message');
+  document.querySelectorAll<HTMLButtonElement>('[data-prompt]').forEach((b) =>
+    b.addEventListener('click', () => {
+      if (input) {
+        input.value = b.dataset.prompt || '';
+        input.focus();
+      }
+    }),
+  );
+  document.querySelector('#lab-form')?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const s = document.querySelector('#lab-status');
+    if (s)
+      s.textContent =
+        'Igbo Chat is coming soon. Your message has not been sent or stored. Join the collaboration programme to help shape this research.';
+  });
+</script>

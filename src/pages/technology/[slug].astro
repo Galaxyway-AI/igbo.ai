@@ -1,0 +1,43 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import PageHero from '../../components/PageHero.astro';
+import { technologies } from '../../data/project';
+export function getStaticPaths() {
+  return technologies.map((tech) => ({
+    params: { slug: tech.slug },
+    props: { tech },
+  }));
+}
+const { tech } = Astro.props;
+---
+
+<Layout title={tech.name} description={tech.description}
+  ><PageHero
+    eyebrow={`TECHNOLOGY / ${tech.status.toUpperCase()}`}
+    title={tech.name}
+    description={tech.description}
+  /><section class="section container two-col">
+    <div class="panel">
+      <span class="tech-icon" aria-hidden="true">{tech.icon}</span><h3
+        style="margin-top:20px"
+      >
+        A proposed research component
+      </h3><p>
+        Status: {tech.status}<br />Target: To be confirmed<br />Licence: Not yet
+        determined
+      </p>
+    </div><div class="prose">
+      <h2 style="margin-top:0">What we intend to explore</h2><p>
+        {tech.detail}
+      </p><h2>Built with the community</h2><p>
+        We welcome linguistic expertise, research collaboration and
+        native-speaker perspectives. Scope and priorities will evolve with
+        evidence, resources and contributor input.
+      </p><h2>Quality must be demonstrated</h2><p>
+        Any future release should document its data provenance, intended uses,
+        evaluation method and known limitations. Automated metrics will be
+        complemented by native-speaker judgement.
+      </p><a class="button" href="/collaborate">Help shape this work ↗</a>
+    </div>
+  </section></Layout
+>

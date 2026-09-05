@@ -1,0 +1,72 @@
+---
+const bars = Array.from({ length: 73 }, (_, i) => ({
+  x: 44 + i * 6.9,
+  height:
+    12 +
+    Math.pow(Math.sin(i * 0.24), 2) * 54 +
+    Math.pow(Math.sin(i * 0.57), 2) * 28,
+}));
+---
+
+<div class="tone-visual">
+  <div class="visual-top">
+    <span><i class="live-dot"></i> THE SHAPE OF A LANGUAGE</span><span
+      >01 — IGBO</span>
+  </div><div class="tone-word">
+    <span lang="ig">Igbo.</span><span>Every tone carries meaning.</span>
+  </div><svg
+    class="contour"
+    viewBox="0 0 600 245"
+    role="img"
+    aria-label="Conceptual pitch contours illustrating the relationship between tone and speech, not measured audio"
+    ><defs
+      ><linearGradient id="line" x1="0" x2="1"
+        ><stop stop-color="#a1b39c"></stop><stop
+          offset=".5"
+          stop-color="#2c6953"></stop><stop offset="1" stop-color="#b0ba9d"
+        ></stop></linearGradient
+      ></defs
+    ><g class="grid-lines" stroke="#254e3a" stroke-opacity=".09"
+      ><path
+        d="M0 45H600M0 95H600M0 145H600M0 195H600M75 0V245M150 0V245M225 0V245M300 0V245M375 0V245M450 0V245M525 0V245"
+      ></path></g
+    >{
+      [0, 1, 2, 3, 4, 5, 6, 7, 8].map((n) => (
+        <path
+          d={`M-20 ${166 + n * 4} C65 ${160 + n * 2} 80 ${35 + n * 6} 164 ${68 + n * 5} S240 ${198 - n * 2} 312 ${116 + n * 4} S395 ${25 + n * 6} 451 ${93 + n * 4} S526 ${172 + n * 2} 620 ${59 + n * 6}`}
+          fill="none"
+          stroke="url(#line)"
+          stroke-width={n === 4 ? 2 : 1}
+          opacity={n === 4 ? 1 : 0.25}
+        />
+      ))
+    }<circle cx="312" cy="132" r="5" fill="#265b45"></circle><circle
+      cx="312"
+      cy="132"
+      r="12"
+      fill="#265b45"
+      fill-opacity=".08"></circle></svg
+  ><div class="waveform">
+    <svg viewBox="0 0 600 110" aria-hidden="true"
+      >{
+        bars.map((b) => (
+          <line
+            x1={b.x}
+            x2={b.x}
+            y1={55 - b.height / 2}
+            y2={55 + b.height / 2}
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+          />
+        ))
+      }</svg>
+  </div><div class="visual-pipeline">
+    <span>Text</span><b>→</b><span>Tone</span><b>→</b><span>Phonemes</span><b
+      >→</b
+    ><span>Voice</span>
+  </div><div class="visual-caption">
+    <span>LANGUAGE, WITH ALL ITS NUANCE.</span><span
+      >CONCEPT VISUALISATION</span>
+  </div>
+</div>

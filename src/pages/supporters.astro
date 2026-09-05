@@ -1,0 +1,52 @@
+---
+import Layout from '../layouts/Layout.astro';
+import PageHero from '../components/PageHero.astro';
+---
+
+<Layout title="Our supporters"
+  ><PageHero
+    eyebrow="A SHARED BELIEF"
+    title="A future built with many hands."
+    description="Igbo AI is being built with the help of people and organisations who believe that every language deserves a place in the future of artificial intelligence."
+  /><section class="section container">
+    <div id="supporter-list" class="resource-grid"></div><div
+      class="empty-state"
+      id="supporter-empty"
+    >
+      <span class="eyebrow">PUBLIC ACKNOWLEDGEMENTS</span><h2>
+        Space for the people who help us grow.
+      </h2><p>
+        No public supporter listings have been announced yet. Names appear only
+        with explicit consent and approval. Anonymous support is equally
+        welcome.
+      </p><a class="button" href="/support">Support the project ↗</a>
+    </div><p class="fine-print" id="supporter-status" role="status"></p>
+  </section></Layout
+>
+<script>
+  fetch('/api/public/supporters')
+    .then((r) => {
+      if (!r.ok) throw Error();
+      return r.json();
+    })
+    .then((rows: { public_display_name: string; organisation: string }[]) => {
+      const root = document.querySelector('#supporter-list');
+      if (rows.length)
+        document.querySelector('#supporter-empty')?.setAttribute('hidden', '');
+      rows.forEach((row) => {
+        const card = document.createElement('article');
+        card.className = 'resource-card';
+        const h = document.createElement('h3');
+        h.textContent = row.public_display_name;
+        const p = document.createElement('p');
+        p.textContent = row.organisation || 'Community supporter';
+        card.append(h, p);
+        root?.append(card);
+      });
+    })
+    .catch(() => {
+      const s = document.querySelector('#supporter-status');
+      if (s)
+        s.textContent = 'Live supporter listings are temporarily unavailable.';
+    });
+</script>

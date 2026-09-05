@@ -1,0 +1,140 @@
+---
+import '../styles/global.css';
+import '@fontsource-variable/manrope';
+import '@fontsource-variable/noto-serif';
+import Logo from '../components/Logo.astro';
+interface Props {
+  title?: string;
+  description?: string;
+  noindex?: boolean;
+}
+const {
+  title = 'An open foundation for Igbo language AI',
+  description = 'Building an open foundation for AI that can understand, pronounce and speak Igbo naturally. An open language technology initiative led by Galaxyway AI.',
+  noindex = false,
+} = Astro.props;
+const nav = [
+  ['Research', '/research'],
+  ['Roadmap', '/roadmap'],
+  ['Collaborate', '/collaborate'],
+  ['Lab', '/lab'],
+  ['About', '/about'],
+];
+const path = Astro.url.pathname.replace(/\/$/, '') || '/';
+---
+
+<!doctype html>
+<html lang="en">
+  <head
+    ><meta charset="UTF-8" /><meta
+      name="viewport"
+      content="width=device-width, initial-scale=1"
+    /><meta name="theme-color" content="#183f35" /><title>
+      {title} — Igbo AI
+    </title><meta name="description" content={description} /><link
+      rel="canonical"
+      href={new URL(Astro.url.pathname, 'https://igbo.ai')}
+    /><link rel="icon" href="/favicon.svg" type="image/svg+xml" /><meta
+      property="og:type"
+      content="website"
+    /><meta property="og:title" content={`${title} — Igbo AI`} /><meta
+      property="og:description"
+      content={description}
+    /><meta
+      property="og:url"
+      content={new URL(Astro.url.pathname, 'https://igbo.ai')}
+    /><meta property="og:image" content="https://igbo.ai/social.png" /><meta
+      name="twitter:card"
+      content="summary_large_image"
+    />{noindex && <meta name="robots" content="noindex,nofollow" />}</head
+  ><body>
+    <a class="skip" href="#main">Skip to content</a>
+    <header class="site-header">
+      <div class="container header-inner">
+        <Logo /><nav aria-label="Main navigation" id="main-nav">
+          {
+            nav.map(([label, url]) => (
+              <a
+                href={url}
+                aria-current={path.startsWith(url) ? 'page' : undefined}
+              >
+                {label}
+                {label === 'Lab' && <span class="nav-dot" />}
+              </a>
+            ))
+          }<a class="button small" href="/support"
+            >Support Igbo AI <span aria-hidden="true">↗</span></a
+          >
+        </nav><button
+          class="menu-toggle"
+          aria-label="Open navigation"
+          aria-expanded="false"
+          aria-controls="main-nav"><span></span><span></span></button
+        >
+      </div>
+    </header>
+    <main id="main"><slot /></main>
+    <footer itemscope itemtype="https://schema.org/Organization">
+      <meta itemprop="name" content="Igbo AI" />
+      <link itemprop="url" href="https://igbo.ai" />
+      <meta
+        itemprop="description"
+        content="An open language technology initiative led by Galaxyway AI."
+      />
+      <div class="container footer-main">
+        <div>
+          <Logo footer /><p>
+            An open foundation.<br />A language with a future.
+          </p><span class="footer-credit"
+            >An initiative led by <a
+              href="https://www.galaxyway.ai"
+              target="_blank"
+              rel="noopener noreferrer">Galaxyway AI ↗</a
+            ></span
+          >
+        </div><div>
+          <h2>Explore</h2><a href="/research">Research</a><a href="/technology"
+            >Technology</a
+          ><a href="/roadmap">Roadmap</a><a href="/lab">Igbo AI Lab</a>
+        </div><div>
+          <h2>Build with us</h2><a href="/collaborate">Collaborate</a><a
+            href="/support">Support the project</a
+          ><a href="/supporters">Our supporters</a><a href="/open-source"
+            >Open source</a
+          >
+        </div><div>
+          <h2>Stay informed</h2><a href="/updates">Research updates</a><a
+            href="/about">About Igbo AI</a
+          ><a href="/ethics">Data & voice ethics</a><a
+            href="mailto:support@igbo.ai">Get in touch ↗</a
+          >
+        </div>
+      </div><div class="container footer-bottom">
+        <span>© {new Date().getFullYear()} Igbo AI · Led by Galaxyway AI</span
+        ><div>
+          <a href="/privacy">Privacy</a><a href="/terms">Terms</a><span
+            >Built for a language that matters.</span
+          >
+        </div>
+      </div>
+    </footer>
+    <script>
+      const button = document.querySelector<HTMLButtonElement>('.menu-toggle');
+      button?.addEventListener('click', () => {
+        const open = button.getAttribute('aria-expanded') !== 'true';
+        button.setAttribute('aria-expanded', String(open));
+        button.setAttribute(
+          'aria-label',
+          open ? 'Close navigation' : 'Open navigation',
+        );
+        document.querySelector('#main-nav')?.classList.toggle('open', open);
+      });
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          button?.setAttribute('aria-expanded', 'false');
+          document.querySelector('#main-nav')?.classList.remove('open');
+        }
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,17 @@
+---
+const { footer = false } = Astro.props;
+---
+
+<a
+  class:list={['brand', { 'brand-footer': footer }]}
+  href="/"
+  aria-label="Igbo AI home"
+  ><svg viewBox="0 0 36 36" aria-hidden="true"
+    ><path
+      d="M3 25V14M10 28V8M17 23V4M24 29V11M31 22V7"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="3"
+      stroke-linecap="round"></path></svg
+  ><span>igbo<span class="brand-ai">ai</span><i></i></span></a
+>
