@@ -3,6 +3,7 @@ import '../styles/global.css';
 import '@fontsource-variable/manrope';
 import '@fontsource-variable/noto-serif';
 import Logo from '../components/Logo.astro';
+import { technologies } from '../data/project';
 interface Props {
   title?: string;
   description?: string;
@@ -15,10 +16,10 @@ const {
 } = Astro.props;
 const nav = [
   ['Research', '/research'],
+  ['Technology', '/technology'],
   ['Roadmap', '/roadmap'],
-  ['Collaborate', '/collaborate'],
   ['Lab', '/lab'],
-  ['About', '/about'],
+  ['Collaborate', '/collaborate'],
 ];
 const path = Astro.url.pathname.replace(/\/$/, '') || '/';
 ---
@@ -53,17 +54,31 @@ const path = Astro.url.pathname.replace(/\/$/, '') || '/';
       <div class="container header-inner">
         <Logo /><nav aria-label="Main navigation" id="main-nav">
           {
-            nav.map(([label, url]) => (
-              <a
-                href={url}
-                aria-current={path.startsWith(url) ? 'page' : undefined}
-              >
-                {label}
-                {label === 'Lab' && <span class="nav-dot" />}
-              </a>
-            ))
+            nav.map(([label, url]) =>
+              label === 'Technology' ? (
+                <details class="technology-menu">
+                  <>
+                    <summary>Technology</summary>
+                    <div>
+                      <a href="/technology">All technology →</a>
+                      {technologies.map((t) => (
+                        <a href={'/technology/' + t.slug}>{t.name} →</a>
+                      ))}
+                    </div>
+                  </>
+                </details>
+              ) : (
+                <a
+                  href={url}
+                  aria-current={path.startsWith(url) ? 'page' : undefined}
+                >
+                  {label}
+                  {label === 'Lab' && <span class="nav-dot" />}
+                </a>
+              ),
+            )
           }<a class="button small" href="/support"
-            >Support Igbo AI <span aria-hidden="true">↗</span></a
+            >Support Igbo AI <span aria-hidden="true">→</span></a
           >
         </nav><button
           class="menu-toggle"
@@ -131,6 +146,12 @@ const path = Astro.url.pathname.replace(/\/$/, '') || '/';
       });
       document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
+          document
+            .querySelectorAll<HTMLDetailsElement>('.technology-menu[open]')
+            .forEach((menu) => {
+              menu.open = false;
+              menu.querySelector('summary')?.focus();
+            });
           button?.setAttribute('aria-expanded', 'false');
           document.querySelector('#main-nav')?.classList.remove('open');
         }

@@ -2,42 +2,135 @@
 import Layout from '../../layouts/Layout.astro';
 import PageHero from '../../components/PageHero.astro';
 import { technologies } from '../../data/project';
+import { technologyDetails } from '../../data/technologyDetails';
 export function getStaticPaths() {
   return technologies.map((tech) => ({
     params: { slug: tech.slug },
-    props: { tech },
+    props: {
+      tech,
+      details: technologyDetails[tech.slug as keyof typeof technologyDetails],
+    },
   }));
 }
-const { tech } = Astro.props;
+const { tech, details } = Astro.props;
+const flows =
+  tech.slug === 'igbospeech'
+    ? [details.pipeline.slice(0, 4), details.pipeline.slice(4)]
+    : [details.pipeline];
 ---
 
-<Layout title={tech.name} description={tech.description}
-  ><PageHero
-    eyebrow={`TECHNOLOGY / ${tech.status.toUpperCase()}`}
+<Layout title={tech.name} description={tech.description}>
+  <PageHero
+    eyebrow={`TECHNOLOGY / ${tech.category}`}
     title={tech.name}
     description={tech.description}
-  /><section class="section container two-col">
-    <div class="panel">
-      <span class="tech-icon" aria-hidden="true">{tech.icon}</span><h3
-        style="margin-top:20px"
-      >
-        A proposed research component
-      </h3><p>
-        Status: {tech.status}<br />Target: To be confirmed<br />Licence: Not yet
-        determined
+  />
+  <section class="section container technology-intro">
+    <aside class="panel">
+      <span class="tech-icon" aria-hidden="true">{tech.icon}</span>
+      <h2>Current status</h2>
+      <p><strong data-tech-status>{tech.status}</strong></p>
+      <p>
+        Target: To be confirmed<br />Licence: Determined per future output and
+        its source materials.
       </p>
-    </div><div class="prose">
-      <h2 style="margin-top:0">What we intend to explore</h2><p>
-        {tech.detail}
-      </p><h2>Built with the community</h2><p>
-        We welcome linguistic expertise, research collaboration and
-        native-speaker perspectives. Scope and priorities will evolve with
-        evidence, resources and contributor input.
-      </p><h2>Quality must be demonstrated</h2><p>
-        Any future release should document its data provenance, intended uses,
-        evaluation method and known limitations. Automated metrics will be
-        complemented by native-speaker judgement.
-      </p><a class="button" href="/collaborate">Help shape this work ↗</a>
+      <p class="fine-print">
+        This is a proposed research component. No production model or dataset is
+        implied.
+      </p>
+    </aside>
+    <div class="prose">
+      <span class="eyebrow">WHAT IS IT?</span><h2>{details.what}</h2>
+      <span class="eyebrow">WHY DO WE NEED IT?</span><p>{details.why}</p>
     </div>
-  </section></Layout
->
+  </section>
+  <section class="section soft-section">
+    <div class="container">
+      <span class="eyebrow">CONCEPTUAL FLOW</span>
+      {
+        flows.map((flow) => (
+          <div class="technology-flow">
+            {flow.map((step: string, i: number) => (
+              <>
+                <span>{step}</span>
+                {i < flow.length - 1 && <b aria-hidden="true">↓</b>}
+              </>
+            ))}
+          </div>
+        ))
+      }
+    </div>
+  </section>
+  <section class="section container">
+    <div class="technology-columns">
+      <article>
+        <span class="eyebrow">WHAT GOES IN?</span>
+        <ul>{details.inputs.map((item: string) => <li>{item}</li>)}</ul>
+      </article>
+      <article>
+        <span class="eyebrow">WHAT HAPPENS?</span><p>{tech.detail}</p>
+      </article>
+      <article>
+        <span class="eyebrow">WHAT COMES OUT?</span>
+        <ul>{details.outputs.map((item: string) => <li>{item}</li>)}</ul>
+      </article>
+    </div>
+  </section>
+  <section class="section soft-section">
+    <div class="container two-col">
+      <div>
+        <span class="eyebrow">WHAT DOES SUCCESS LOOK LIKE?</span>
+        <h2>Quality must be demonstrated.</h2><p>{details.success}</p>
+      </div>
+      <div>
+        <span class="eyebrow">DEPENDENCIES</span>
+        <ul>{details.dependencies.map((item: string) => <li>{item}</li>)}</ul>
+      </div>
+    </div>
+  </section>
+  <section class="section container two-col">
+    <div>
+      <span class="eyebrow">PLANNED OPEN-SOURCE OUTPUTS</span>
+      <ul>{details.open.map((item: string) => <li>{item}</li>)}</ul>
+      <p class="fine-print">
+        Release depends on provenance, consent, third-party licences and
+        technical readiness.
+      </p>
+    </div>
+    <div>
+      <span class="eyebrow">RESEARCH QUESTIONS</span>
+      <ol>{details.questions.map((item: string) => <li>{item}</li>)}</ol>
+    </div>
+  </section>
+  {
+    tech.slug === 'igbospeechbench' && (
+      <section class="section container">
+        <div class="benchmark-preview">
+          <span class="eyebrow">BLIND A/B EVALUATION CONCEPT</span>
+          <p>Sentence</p>
+          <div>
+            <>
+              <button disabled>Voice A ▶</button>
+              <button disabled>Voice B ▶</button>
+            </>
+          </div>
+          <p>Which sounds more natural?</p>
+          <div>
+            <>
+              <button disabled>A</button>
+              <button disabled>B</button>
+              <button disabled>About the same</button>
+              <button disabled>Neither</button>
+            </>
+          </div>
+          <small>
+            Interface concept · no audio or evaluation collection is active
+          </small>
+        </div>
+      </section>
+    )
+  }
+  <section class="section container">
+    <a class="button" href="/collaborate">Help shape this work →</a>
+  </section>
+</Layout>

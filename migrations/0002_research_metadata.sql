@@ -1,0 +1,12 @@
+ALTER TABLE resources ADD COLUMN organisation TEXT NOT NULL DEFAULT '';
+ALTER TABLE resources ADD COLUMN licence_url TEXT NOT NULL DEFAULT '';
+ALTER TABLE resources ADD COLUMN access_status TEXT NOT NULL DEFAULT 'Further licence audit required';
+ALTER TABLE resources ADD COLUMN potential_role TEXT NOT NULL DEFAULT 'Investigate';
+ALTER TABLE resources ADD COLUMN notes TEXT NOT NULL DEFAULT '';
+ALTER TABLE resources ADD COLUMN last_reviewed_at TEXT;
+ALTER TABLE resources ADD COLUMN verified INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE audit_log ADD COLUMN previous_value TEXT;
+ALTER TABLE audit_log ADD COLUMN new_value TEXT;
+ALTER TABLE lab_feedback ADD COLUMN status TEXT NOT NULL DEFAULT 'New';
+ALTER TABLE supporters ADD COLUMN display_organisation INTEGER NOT NULL DEFAULT 0;
+CREATE TABLE research_update_resources (update_id TEXT NOT NULL REFERENCES research_updates(id), resource_id TEXT NOT NULL REFERENCES resources(id), PRIMARY KEY(update_id,resource_id));

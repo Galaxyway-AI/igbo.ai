@@ -54,6 +54,7 @@ export const supporterSchema = z
     website: safeURL,
     display_amount: z.boolean().default(false),
     display_level: z.boolean().default(false),
+    display_organisation: z.boolean().default(false),
     privacy_consent: z.literal(true),
     'cf-turnstile-response': z.string().max(2048).optional(),
   })
@@ -68,6 +69,8 @@ export function publicPreferences(data: z.infer<typeof supporterSchema>) {
     public_display_name: data.public_consent ? data.public_display_name : '',
     display_amount: data.public_consent && data.display_amount ? 1 : 0,
     display_level: data.public_consent && data.display_level ? 1 : 0,
+    display_organisation:
+      data.public_consent && data.display_organisation ? 1 : 0,
   };
 }
 export const collaboratorUpdate = z.object({
@@ -76,6 +79,8 @@ export const collaboratorUpdate = z.object({
   note: z.string().max(4000).default(''),
 });
 export const phaseStatuses = [
+  'In Progress',
+  'Completed',
   'Planned',
   'Research',
   'Active Development',
@@ -102,6 +107,7 @@ export const phaseSchema = z.object({
     .default([]),
 });
 export const updateSchema = z.object({
+  resource_ids: z.array(z.string().max(160)).max(100).default([]),
   title: z.string().min(3).max(160),
   slug: z
     .string()
@@ -115,6 +121,22 @@ export const updateSchema = z.object({
   seo_description: z.string().max(300).default(''),
 });
 export const resourceSchema = z.object({
+  organisation: short,
+  licence_url: safeURL,
+  access_status: z.string().max(200).default('Further licence audit required'),
+  potential_role: z
+    .enum([
+      'Reuse',
+      'Investigate',
+      'Benchmark',
+      'Potential collaboration',
+      'Build ourselves',
+      'Do not use without permission',
+    ])
+    .default('Investigate'),
+  notes: z.string().max(4000).default(''),
+  last_reviewed_at: z.string().date().nullable().default(null),
+  verified: z.boolean().default(false),
   title: z.string().min(2).max(160),
   summary: z.string().min(10).max(1000),
   url: safeURL.refine((v) => v.length > 0),

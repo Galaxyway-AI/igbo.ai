@@ -2,6 +2,8 @@
 
 Date: 5 September 2026.
 
+The sections below record the original launch baseline. See [Phase 2 verification](phase-2-verification.md) for the current staging release, expanded coverage and production launch gate.
+
 ## Implemented and checked
 
 - Astro production build: 24 generated routes.

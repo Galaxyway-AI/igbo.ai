@@ -10,6 +10,8 @@ import {
 } from 'vitest';
 import { Miniflare, convertV4MiniflareOptions } from 'miniflare';
 import { readFile } from 'node:fs/promises';
+import { build } from 'esbuild';
+import { articleFixture } from './helpers';
 import worker from '../worker/index';
 import {
   collaborationSchema,
@@ -46,29 +48,55 @@ function request(path: string, body?: unknown, origin = 'https://igbo.ai') {
   });
 }
 beforeAll(async () => {
+  const bundled = await build({
+    entryPoints: ['worker/index.ts'],
+    bundle: true,
+    format: 'esm',
+    write: false,
+    platform: 'neutral',
+    target: 'es2022',
+  });
   mf = new Miniflare(
     convertV4MiniflareOptions({
       workers: [
         {
           name: 'test',
           modules: true,
-          script: 'export default {fetch(){return new Response("ok")}}',
+          script: bundled.outputFiles[0].text,
           d1Databases: ['DB'],
           compatibilityDate: '2026-09-05',
+          bindings: { ENVIRONMENT: 'production', SITE_URL: 'https://igbo.ai' },
+          serviceBindings: {
+            ASSETS: () =>
+              new Response(articleFixture, {
+                headers: { 'Content-Type': 'text/html' },
+              }),
+          },
         },
       ],
     }),
   );
   const db = await mf.getD1Database('DB');
-  const sql = await readFile(
-    new URL('../migrations/0001_initial.sql', import.meta.url),
-    'utf8',
-  );
-  for (const statement of sql.split(';').filter((s) => s.trim()))
-    await db.prepare(statement).run();
+  for (const migration of ['0001_initial.sql', '0002_research_metadata.sql']) {
+    const sql = await readFile(
+      new URL(`../migrations/${migration}`, import.meta.url),
+      'utf8',
+    );
+    for (const statement of sql.split(';').filter((s) => s.trim()))
+      await db.prepare(statement).run();
+  }
   env = {
     DB: db,
-    ASSETS: { fetch: async () => new Response('asset') },
+    ASSETS: {
+      fetch: async (input: RequestInfo | URL) =>
+        new Response(
+          (input instanceof Request ? input.url : String(input)).includes(
+            '/research/article-template/',
+          )
+            ? '<!doctype html><html><head><title>Research update</title><meta name="description"><meta property="og:description"><meta property="og:title"><meta property="og:url"><meta property="og:type"><meta name="robots"><link rel="canonical"></head><body><span id="article-status"></span><h1 id="article-title"></h1><p id="article-summary"></p><p id="article-meta"></p><div id="article-body"></div><section id="article-references"></section></body></html>'
+            : 'asset',
+        ),
+    },
     ENVIRONMENT: 'production',
     SITE_URL: 'https://igbo.ai',
     TURNSTILE_SITE_KEY: 'test-key',
@@ -132,6 +160,7 @@ describe('input integrity', () => {
       public_display_name: '',
       display_amount: 0,
       display_level: 0,
+      display_organisation: 0,
     });
   });
   it('requires display name for public consent', () => {
@@ -341,11 +370,10 @@ describe('administration and publication', () => {
       await worker.fetch(request('/api/public/updates'), env, context)
     ).json();
     expect(rows).toHaveLength(1);
-    const article = await worker.fetch(
-      request('/updates/research-methods'),
-      env,
-      context,
+    const article = await mf.dispatchFetch(
+      'https://igbo.ai/updates/research-methods',
     );
+    expect(article.status).toBe(200);
     expect(await article.text()).toContain('&lt;script&gt;');
   });
   it('never publishes unconsented supporters even if status is approved', async () => {

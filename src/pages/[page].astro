@@ -57,6 +57,10 @@ const pages = {
         'Personal contact information should be separated from research responses where practical. Contributor terms must state retention, access controls and the practical limits of withdrawing data after a permitted public release.',
       ],
       [
+        'Dataset governance',
+        'Igbo AI intends to maintain source, dataset, version, licence and attribution records for research data. Reviews will record training, redistribution and commercial-use permissions, contributor consent and modification history. Each dataset will be assessed individually; a public download or an open label alone does not establish every intended use. A formal provenance audit remains planned.',
+      ],
+      [
         'Children’s voices',
         'Children’s speech is a separate high-risk area requiring explicit policies and safeguards. This platform does not currently collect voice recordings from children or adults.',
       ],
@@ -193,7 +197,7 @@ const page = pages[Astro.params.page as keyof typeof pages];
           </section>
         ))
       }<div style="margin-top:40px">
-        <a class="button" href="/collaborate">Collaborate with us ↗</a>
+        <a class="button" href="/collaborate">Collaborate with us →</a>
       </div>{
         Astro.params.page === 'about' && (
           <p>

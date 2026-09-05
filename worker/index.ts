@@ -16,6 +16,7 @@ import {
 } from './validation';
 import { adminAPI } from './admin';
 import { publicAPI, articlePage } from './public';
+import { managedContent } from './content';
 import { deliverOutbox, GatewayPaymentProvider } from './providers';
 async function settings(env: AppEnv) {
   const { results } = await env.DB.prepare(
@@ -58,7 +59,13 @@ export default {
           Response.json({
             turnstileSiteKey: env.TURNSTILE_SITE_KEY,
             formsEnabled: state.forms_enabled === 'true',
-            paymentsEnabled: state.payments_enabled === 'true',
+            paymentsEnabled:
+              state.payments_enabled === 'true' &&
+              Boolean(
+                env.PAYMENT_ENDPOINT &&
+                env.PAYMENT_API_KEY &&
+                env.PAYMENT_WEBHOOK_SECRET,
+              ),
           }),
           true,
         );
@@ -158,7 +165,7 @@ export default {
           const pref = publicPreferences(data);
           await env.DB.batch([
             env.DB.prepare(
-              'INSERT INTO supporters(id,private_name,email,organisation,public_display_name,website,public_consent,anonymous,display_amount,display_level) VALUES(?,?,?,?,?,?,?,?,?,?)',
+              'INSERT INTO supporters(id,private_name,email,organisation,public_display_name,website,public_consent,anonymous,display_amount,display_level,display_organisation) VALUES(?,?,?,?,?,?,?,?,?,?,?)',
             ).bind(
               id,
               data.name,
@@ -170,6 +177,7 @@ export default {
               pref.anonymous,
               pref.display_amount,
               pref.display_level,
+              pref.display_organisation,
             ),
             env.DB.prepare(
               'INSERT INTO support_transactions(id,supporter_id,amount_minor) VALUES(?,?,?)',
@@ -229,6 +237,7 @@ export default {
         const base = [
           '/',
           '/research',
+          '/research/landscape',
           '/technology',
           '/roadmap',
           '/collaborate',
@@ -257,12 +266,34 @@ export default {
         ];
         return secure(
           new Response(
-            `<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${urls.map((p) => `<url><loc>${env.SITE_URL}${p}</loc></url>`).join('')}</urlset>`,
+            `<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${urls.map((p) => `<url><loc>https://igbo.ai${p}</loc></url>`).join('')}</urlset>`,
             { headers: { 'Content-Type': 'application/xml' } },
           ),
+          env.ENVIRONMENT !== 'production',
         );
       }
-      const response = await env.ASSETS.fetch(request);
+      if (path === '/robots.txt')
+        return secure(
+          new Response(
+            env.ENVIRONMENT === 'production'
+              ? 'User-agent: *\nDisallow: /admin\nDisallow: /api/\nDisallow: /research/article-template\nSitemap: https://igbo.ai/sitemap.xml\n'
+              : 'User-agent: *\nDisallow: /\n',
+            { headers: { 'Content-Type': 'text/plain' } },
+          ),
+          env.ENVIRONMENT !== 'production',
+        );
+      if (
+        path === '/research/article-template' ||
+        path.startsWith('/research/article-template/')
+      )
+        throw new HTTPError(404, 'Not found.');
+      let response = await env.ASSETS.fetch(request);
+      if (
+        response.ok &&
+        (['/', '/updates', '/roadmap', '/research/landscape'].includes(path) ||
+          path.startsWith('/technology/'))
+      )
+        response = await managedContent(path, response, env);
       const secured = secure(response);
       if (env.ENVIRONMENT !== 'production')
         secured.headers.set('X-Robots-Tag', 'noindex, nofollow');
@@ -290,7 +321,10 @@ export default {
             `<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Igbo AI — Access required</title><body style="background:#f8f7f2;color:#224c3b;font:16px/1.8 system-ui;padding:10vw"><h1>Private administration</h1><p>${message}</p><a href="/">Return to Igbo AI</a></body></html>`,
             { status, headers: { 'Content-Type': 'text/html;charset=utf-8' } },
           );
-      return secure(response, privateResponse);
+      return secure(
+        response,
+        privateResponse || env.ENVIRONMENT !== 'production',
+      );
     }
   },
   async scheduled(

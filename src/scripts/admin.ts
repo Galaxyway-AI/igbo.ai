@@ -4,8 +4,16 @@ const root = document.querySelector<HTMLElement>('#admin-records')!;
 const status = document.querySelector<HTMLElement>('#admin-status')!;
 let section = 'dashboard';
 let records: RecordData[] = [];
-const create = document.querySelector<HTMLButtonElement>('#admin-create')!;
+const create = document.querySelector<HTMLDetailsElement>('#admin-create')!;
+const sidebar = document.querySelector<HTMLDetailsElement>('.admin-sidebar')!;
+const compactNavigation = window.matchMedia('(max-width: 760px)');
+sidebar.open = !compactNavigation.matches;
+compactNavigation.addEventListener('change', () => {
+  sidebar.open = !compactNavigation.matches;
+});
 const statuses = [
+  'In Progress',
+  'Completed',
   'Planned',
   'Research',
   'Active Development',
@@ -41,6 +49,7 @@ const schemas: Record<string, Record<string, string | string[]>> = {
     milestones: 'milestones',
   },
   updates: {
+    resource_ids: 'references',
     title: 'text',
     slug: 'text',
     summary: 'textarea',
@@ -51,6 +60,20 @@ const schemas: Record<string, Record<string, string | string[]>> = {
     status: ['Draft', 'Published'],
   },
   resources: {
+    organisation: 'text',
+    licence_url: 'url',
+    access_status: 'text',
+    potential_role: [
+      'Investigate',
+      'Reuse',
+      'Benchmark',
+      'Potential collaboration',
+      'Build ourselves',
+      'Do not use without permission',
+    ],
+    notes: 'textarea',
+    last_reviewed_at: 'date',
+    verified: 'checkbox',
     title: 'text',
     summary: 'textarea',
     url: 'url',
@@ -78,6 +101,7 @@ const schemas: Record<string, Record<string, string | string[]>> = {
   projects: {
     status: ['Planned', 'Research', 'In Development', 'Testing', 'Released'],
   },
+  feedback: { status: ['New', 'Reviewed', 'Archived'] },
 };
 async function api(path: string, method = 'GET', body?: unknown) {
   const r = await fetch('/api/admin/' + path, {
@@ -85,6 +109,10 @@ async function api(path: string, method = 'GET', body?: unknown) {
     headers: body ? { 'Content-Type': 'application/json' } : undefined,
     body: body ? JSON.stringify(body) : undefined,
   });
+  if (!r.headers.get('Content-Type')?.includes('application/json'))
+    throw Error(
+      'Your administrator session may have expired. Reload this page to sign in again.',
+    );
   const data = await r.json();
   if (!r.ok) throw Error(data.error || 'The request could not be completed.');
   return data;
@@ -100,6 +128,50 @@ function field(
   type: string | string[],
   value: unknown,
 ) {
+  if (type === 'references') {
+    form.dataset.referencesReady = 'false';
+    const group = el('fieldset');
+    group.append(
+      el('legend', 'Research references'),
+      el(
+        'small',
+        'Select maintained resources to cite. Only published resources appear in public articles.',
+      ),
+    );
+    const loading = el('p', 'Loading references…');
+    group.append(loading);
+    form.append(group);
+    void api('resources')
+      .then((resources: RecordData[]) => {
+        loading.remove();
+        if (!resources.length)
+          group.append(
+            el('p', 'Add a research resource first to link references.'),
+          );
+        resources.forEach((resource) => {
+          const label = el('label');
+          const input = el('input');
+          input.type = 'checkbox';
+          input.name = key;
+          input.value = String(resource.id);
+          input.checked = Array.isArray(value) && value.includes(resource.id);
+          label.append(
+            input,
+            document.createTextNode(` ${resource.title} (${resource.status})`),
+          );
+          group.append(label);
+        });
+        form.dataset.referencesReady = 'true';
+      })
+      .catch(() => {
+        loading.textContent =
+          'References could not be loaded. Reload before saving to preserve existing links.';
+        form
+          .querySelector<HTMLButtonElement>('button[type=submit]')
+          ?.setAttribute('disabled', '');
+      });
+    return;
+  }
   const label = el('label', key.replaceAll('_', ' '));
   let input: HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement;
   if (Array.isArray(type)) {
@@ -135,9 +207,12 @@ function field(
   form.append(label);
 }
 function editor(record: RecordData) {
+  const collection = section;
   const form = el('form');
   form.className = 'admin-record';
-  const existing = Boolean(record.id || record.slug);
+  let existing = Boolean(
+    record.id || (collection === 'projects' && record.slug),
+  );
   const title = el(
     'h3',
     String(
@@ -149,15 +224,34 @@ function editor(record: RecordData) {
     ),
   );
   form.append(title);
+  if (collection === 'resources' && record.id)
+    form.append(el('p', `Resource ID: ${record.id}`));
+  if (collection === 'updates' && existing) {
+    const preview = el('a', 'Preview saved version →');
+    preview.href = `/api/admin/updates/${encodeURIComponent(String(record.id))}/preview`;
+    preview.target = '_blank';
+    preview.rel = 'noopener noreferrer';
+    form.append(
+      preview,
+      el(
+        'p',
+        `Published: ${record.published_at || 'Not published'} · Updated: ${record.updated_at || 'Not saved'}`,
+      ),
+    );
+  }
   if (
     section === 'collaborators' ||
     section === 'sponsorship' ||
-    section === 'supporters'
+    section === 'supporters' ||
+    section === 'feedback'
   ) {
     for (const [key, value] of Object.entries(record)) {
       if (!['id', 'status', 'tags'].includes(key))
         form.append(
-          el('p', `${key.replaceAll('_', ' ')}: ${String(value ?? '')}`),
+          el(
+            'p',
+            `${key.replaceAll('_', ' ')}: ${['public_consent', 'anonymous', 'display_amount', 'display_level', 'display_organisation'].includes(key) ? (value ? 'YES' : 'NO') : String(value ?? '')}`,
+          ),
         );
     }
   }
@@ -172,10 +266,27 @@ function editor(record: RecordData) {
   form.append(feedback);
   form.addEventListener('submit', async (event) => {
     event.preventDefault();
+    if (form.dataset.referencesReady === 'false') {
+      feedback.textContent =
+        'Please wait for research references to load before saving.';
+      return;
+    }
+    const selectedStatus =
+      form.querySelector<HTMLSelectElement>('[name=status]')?.value;
+    if (
+      (selectedStatus === 'Archived' ||
+        (record.status === 'Published' && selectedStatus === 'Draft')) &&
+      !window.confirm(
+        'Remove this record from public use or archive it? The record will be retained.',
+      )
+    )
+      return;
     save.disabled = true;
     feedback.textContent = 'Saving…';
     const values: RecordData = Object.fromEntries(new FormData(form));
-    for (const [key, type] of Object.entries(schemas[section])) {
+    for (const [key, type] of Object.entries(schemas[collection])) {
+      if (type === 'references')
+        values[key] = new FormData(form).getAll(key).map(String);
       if (type === 'checkbox')
         values[key] = form.querySelector<HTMLInputElement>(
           `[name=${key}]`,
@@ -193,14 +304,26 @@ function editor(record: RecordData) {
           });
     }
     try {
-      await api(
-        section +
+      const result = await api(
+        collection +
           (existing
             ? '/' + encodeURIComponent(String(record.id || record.slug))
             : ''),
         existing ? 'PATCH' : 'POST',
         values,
       );
+      record.id = result.id;
+      record.status = values.status;
+      existing = true;
+      if (collection === 'updates') {
+        const link =
+          form.querySelector<HTMLAnchorElement>('a') ||
+          el('a', 'Preview saved version →');
+        link.href = `/api/admin/updates/${encodeURIComponent(String(result.id))}/preview`;
+        link.target = '_blank';
+        link.rel = 'noopener noreferrer';
+        if (!link.parentNode) form.append(link);
+      }
       feedback.textContent =
         'Saved. Public content reflects published and approved records.';
     } catch (error) {
@@ -252,22 +375,41 @@ function render() {
   }
   if (!filtered.length)
     root.append(
-      el('p', 'No matching records. No placeholder data has been added.'),
+      el(
+        'p',
+        query
+          ? 'No records match your search.'
+          : {
+              collaborators: 'No collaborator applications yet.',
+              supporters: 'No supporters are currently awaiting approval.',
+              campaigns: 'No funding campaigns have been created.',
+              feedback: 'No Lab feedback has been submitted.',
+              sponsorship: 'No sponsorship enquiries yet.',
+              email: 'No emails are waiting for delivery.',
+              audit: 'No administration activity has been recorded.',
+              updates: 'No research updates yet. Create a draft to begin.',
+              resources:
+                'No research resources yet. Add a source to the landscape.',
+            }[section] || 'No records in this section yet.',
+      ),
     );
 }
 async function load(name: string) {
   section = name;
   status.textContent = 'Loading…';
   root.replaceChildren();
-  create.hidden = ![
-    'roadmap',
-    'updates',
-    'resources',
-    'campaigns',
-    'organisations',
+  document.querySelector<HTMLInputElement>('#admin-search')!.hidden = [
+    'dashboard',
+    'settings',
   ].includes(name);
   try {
     const data = await api(name);
+    if (section !== name) return;
+    if (name === 'dashboard') {
+      renderDashboard(data);
+      status.textContent = '';
+      return;
+    }
     if (name === 'settings') {
       renderSettings(data);
       status.textContent = '';
@@ -325,6 +467,82 @@ function renderSettings(rows: { key: string; value: string }[]) {
   });
   root.append(form);
 }
+function renderDashboard(data: {
+  metrics: Record<string, { total: number | null; pending?: number | null }>;
+  phase: RecordData | null;
+  next: RecordData | null;
+  activity: RecordData[];
+}) {
+  const grid = el('div');
+  grid.className = 'admin-metrics';
+  const labels: Record<string, [string, string, string]> = {
+    collaborators: ['Collaborators', 'Total applications', 'awaiting review'],
+    sponsorship: [
+      'Sponsorship enquiries',
+      'Total enquiries',
+      'awaiting response',
+    ],
+    supporters: ['Supporters', 'Approved supporters', 'awaiting approval'],
+    updates: ['Research updates', 'Published updates', 'drafts'],
+    organisations: ['Organisations', 'Confirmed relationships', ''],
+    feedback: ['Lab feedback', 'New feedback', ''],
+    campaigns: ['Funding campaigns', 'Published campaigns', 'drafts'],
+  };
+  for (const [key, metric] of Object.entries(data.metrics)) {
+    const card = el('article');
+    card.className = 'metric-card';
+    const [title, caption, pending] = labels[key];
+    const number = el('strong', String(metric.total || 0));
+    number.className = 'metric-value';
+    card.append(el('h3', title), number, el('p', caption));
+    if (pending) card.append(el('small', `${metric.pending || 0} ${pending}`));
+    const link = el('button', 'View section →');
+    link.type = 'button';
+    link.addEventListener('click', () => selectSection(key));
+    card.append(link);
+    grid.append(card);
+    const badge = document.querySelector(`[data-count="${key}"]`);
+    if (badge) badge.textContent = metric.pending ? ` ${metric.pending}` : '';
+  }
+  const phase = el('article');
+  phase.className = 'metric-card';
+  phase.append(
+    el('h3', 'Roadmap'),
+    el('p', String(data.phase?.title || 'No active phase')),
+    el('span', String(data.phase?.status || '')),
+    el('p', `Next milestone: ${data.next?.title || 'To be confirmed'}`),
+  );
+  grid.append(phase);
+  root.append(grid, el('h3', 'Recent activity'));
+  const activity = el('ol');
+  activity.className = 'activity-list';
+  data.activity.forEach((item) => {
+    const li = el('li');
+    li.append(
+      el(
+        'strong',
+        `${item.action} · ${String(item.entity_type).replaceAll('_', ' ')}`,
+      ),
+      el('p', `Record ${item.entity_id}`),
+      el('small', `${item.created_at} · ${item.actor}`),
+    );
+    activity.append(li);
+  });
+  root.append(
+    data.activity.length
+      ? activity
+      : el(
+          'p',
+          'No recent administration activity. New actions will appear here.',
+        ),
+  );
+}
+function selectSection(name: string) {
+  const button = document.querySelector<HTMLButtonElement>(
+    `[data-admin-section="${name}"]`,
+  );
+  button?.click();
+}
 document
   .querySelectorAll<HTMLButtonElement>('[data-admin-section]')
   .forEach((button) =>
@@ -335,18 +553,45 @@ document
       document.querySelector('#admin-title')!.textContent = button.textContent;
       document.querySelector<HTMLInputElement>('#admin-search')!.value = '';
       void load(button.dataset.adminSection!);
+      if (compactNavigation.matches) sidebar.open = false;
     }),
   );
 document.querySelector('#admin-search')?.addEventListener('input', () => {
   if (section !== 'settings') render();
 });
-create.addEventListener('click', () => {
-  const form = editor({});
-  root.prepend(form);
-  form.querySelector('input')?.focus();
+document
+  .querySelectorAll<HTMLButtonElement>('[data-create]')
+  .forEach((button) =>
+    button.addEventListener('click', async () => {
+      const name = button.dataset.create!;
+      create.open = false;
+      document
+        .querySelectorAll<HTMLButtonElement>('[data-admin-section]')
+        .forEach((b) =>
+          b.setAttribute(
+            'aria-pressed',
+            String(b.dataset.adminSection === name),
+          ),
+        );
+      document.querySelector('#admin-title')!.textContent = button.textContent;
+      await load(name);
+      const form = editor({});
+      root.prepend(form);
+      form.querySelector('input,textarea')?.scrollIntoView({ block: 'center' });
+      form.querySelector<HTMLInputElement>('input,textarea')?.focus();
+    }),
+  );
+create.addEventListener('keydown', (event) => {
+  if (event.key === 'Escape') {
+    create.open = false;
+    create.querySelector('summary')?.focus();
+  }
 });
-api('dashboard')
-  .then(() => {
+api('identity')
+  .then((identity) => {
+    document.querySelector('#admin-identity')!.textContent = identity.email;
+    document.querySelector('#admin-environment')!.textContent =
+      identity.environment.toUpperCase();
     document.querySelector('#admin-lock')?.setAttribute('hidden', '');
     document.querySelector('#admin-workspace')?.removeAttribute('hidden');
     void load('dashboard');

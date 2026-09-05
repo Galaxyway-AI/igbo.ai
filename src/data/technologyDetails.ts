@@ -1,0 +1,252 @@
+export const technologyDetails = {
+  igbopronounce: {
+    what: 'A proposed structured pronunciation resource connecting how an Igbo word is written, understood and spoken across legitimate varieties.',
+    why: 'Speech systems need reviewable pronunciation evidence. A lexical record can expose ambiguity, variation and provenance instead of hiding them inside model weights.',
+    pipeline: [
+      'Word',
+      'Meaning',
+      'Tone',
+      'Dialect',
+      'Pronunciation',
+      'Verified audio',
+    ],
+    inputs: [
+      'Canonical and fully marked spelling',
+      'Meaning and usage context',
+      'Tone and phoneme analysis',
+      'Dialect and variant information',
+      'Consented native recordings and permitted speaker metadata',
+    ],
+    outputs: [
+      'Versioned pronunciation entries',
+      'Dialect and source records',
+      'Reviewable phoneme or IPA fields where appropriate',
+      'Audio linked to explicit consent and verification',
+    ],
+    success:
+      'Linguists and native speakers can inspect provenance, compare variants and reproduce an entry’s review history. Coverage figures will be reported only after records exist.',
+    dependencies: [
+      'Linguistic annotation guidelines',
+      'Dialect taxonomy and community review',
+      'Recording consent and withdrawal terms',
+      'Provenance and licence registry',
+    ],
+    open: [
+      'Data schema and validation rules',
+      'Annotation and verification guidance',
+      'APIs or exports where underlying rights allow',
+      'Dataset and model cards for any release',
+    ],
+    questions: [
+      'How should canonical and dialect forms relate?',
+      'Which phonetic representation is most useful across research and developer tools?',
+      'How should disagreement and changing verification be recorded?',
+    ],
+  },
+  igbotone: {
+    what: 'A proposed tone and diacritic interpretation layer for written Igbo.',
+    why: 'Igbo is tonal, and tone can affect pronunciation and meaning. Written text often omits full tone information, so a speech system may need context-aware interpretation while preserving the source text.',
+    pipeline: [
+      'Raw text',
+      'Context',
+      'Diacritic / tone interpretation',
+      'Tone representation',
+    ],
+    inputs: [
+      'Original Unicode Igbo text',
+      'Sentence and document context',
+      'Reviewed lexical and tone evidence',
+      'Dialect information where relevant',
+    ],
+    outputs: [
+      'Candidate marked forms',
+      'Machine-readable tone representations',
+      'Confidence or ambiguity signals',
+      'Traceable transformations that retain the original text',
+    ],
+    success:
+      'Native-speaker and linguist evaluation shows useful restoration without hiding ambiguity or overwriting valid input. Integration improves measurable speech tasks under a documented protocol.',
+    dependencies: [
+      'Tone annotation guidance',
+      'Contextual evaluation set',
+      'IgboPronounce lexical evidence',
+      'Dialect-aware review',
+    ],
+    open: [
+      'Tone representation specification',
+      'Evaluation fixtures',
+      'Restoration baselines',
+      'Error analysis and limitations',
+    ],
+    questions: [
+      'When is tone recoverable from context?',
+      'How should several plausible readings be represented?',
+      'Which metrics reflect linguistic correctness and downstream speech quality?',
+    ],
+  },
+  igbophonemizer: {
+    what: 'An Igbo-specific grapheme-to-phoneme system: a proposed engine that turns written language into an explicit, inspectable pronunciation representation.',
+    why: 'Explicit phonemes may provide more control, easier debugging, dialect rules and direct pronunciation evaluation than asking a speech model to infer everything from characters.',
+    pipeline: [
+      'Igbo text',
+      'Normalisation',
+      'Diacritic restoration',
+      'Context',
+      'Tone',
+      'Dialect rules',
+      'Phonemes / IPA',
+    ],
+    inputs: [
+      'Original and normalised text',
+      'Tone candidates and lexical entries',
+      'Context',
+      'Dialect rules and exceptions',
+    ],
+    outputs: [
+      'Phoneme sequences',
+      'IPA where appropriate',
+      'Alternative analyses for ambiguity',
+      'Reusable developer tooling with traceable stages',
+    ],
+    success:
+      'Held-out pronunciation evaluation is reproducible, errors can be traced to a stage, and downstream TTS experiments can test whether explicit representations help.',
+    dependencies: [
+      'IgboPronounce',
+      'IgboTone',
+      'Reviewed phonology and dialect rules',
+      'A pronunciation evaluation protocol',
+    ],
+    open: [
+      'Rule and model baselines',
+      'Command-line and library interfaces',
+      'Test vocabulary and error taxonomy',
+      'Technical documentation',
+    ],
+    questions: [
+      'Where do rules outperform learned mappings?',
+      'How should code-switching and names be handled?',
+      'Can dialect conditioning stay explicit and testable?',
+    ],
+  },
+  igbospeech: {
+    what: 'A future speech stack with two distinct tracks: text-to-speech (TTS) and automatic speech recognition (ASR).',
+    why: 'Natural synthesis and useful recognition depend on trustworthy data, linguistic representations and evaluation designed for Igbo rather than generic coverage claims.',
+    pipeline: [
+      'TTS: Igbo text',
+      'Linguistic processing',
+      'Speech model',
+      'Natural Igbo audio',
+      'ASR: Igbo speech',
+      'Speech model',
+      'Igbo text',
+      'Optional tone / diacritic restoration',
+    ],
+    inputs: [
+      'Licensed, consented speech and transcripts',
+      'Pronunciation, tone and dialect features',
+      'Speaker-independent evaluation sets',
+      'Names, place names and code-switching material',
+    ],
+    outputs: [
+      'Documented experimental checkpoints',
+      'TTS and ASR inference interfaces where release terms allow',
+      'Model cards, data statements and evaluation reports',
+    ],
+    success:
+      'Multi-speaker, prosody and dialect behaviour are evaluated transparently; intelligibility and naturalness claims use both controlled metrics and native-speaker judgement.',
+    dependencies: [
+      'Verified speech data',
+      'IgboPhonemizer and tone experiments',
+      'IgboSpeechBench',
+      'Compute, safety and release review',
+    ],
+    open: [
+      'Training and evaluation recipes',
+      'Permissible checkpoints',
+      'Inference examples',
+      'Known failure cases',
+    ],
+    questions: [
+      'Which supervision improves natural prosody?',
+      'How do dialect and speaker conditioning interact?',
+      'How should names, places and code-switching be evaluated?',
+    ],
+  },
+  igbospeechbench: {
+    what: 'A proposed evaluation framework for comparing Igbo speech systems using reproducible material and native-speaker judgement.',
+    why: 'A system can score well on an automated metric and still sound wrong. Benchmarks make claims testable and keep pronunciation, tone and dialect authenticity visible.',
+    pipeline: [
+      'Sentence',
+      'Voice A ▶',
+      'Voice B ▶',
+      'Which sounds more natural?',
+      'A · B · About the same · Neither',
+    ],
+    inputs: [
+      'Controlled sentences and reference metadata',
+      'Blindly labelled model outputs',
+      'Consented adult evaluators',
+      'Balanced dialect and challenge categories',
+    ],
+    outputs: [
+      'Evaluation protocol and question sets',
+      'Aggregated preference and error reports',
+      'Reproducible baseline comparisons',
+      'Uncertainty and limitation statements',
+    ],
+    success:
+      'The benchmark covers pronunciation, tone, naturalness, intelligibility, dialect authenticity, names, places, proverbs and code-switching, with documented sampling and uncertainty.',
+    dependencies: [
+      'Native-speaker evaluation governance',
+      'Benchmark consent and privacy design',
+      'Reference recordings where permitted',
+      'Statistical analysis plan',
+    ],
+    open: [
+      'Blind A/B interface',
+      'Evaluation specification',
+      'Challenge-set format',
+      'Anonymised aggregate reports where ethical and permitted',
+    ],
+    questions: [
+      'How should dialect preference and correctness be separated?',
+      'How much agreement is needed for a useful conclusion?',
+      'How can evaluator fatigue and model order bias be controlled?',
+    ],
+  },
+  igbolm: {
+    what: 'A later-stage language intelligence layer for Igbo understanding and generation. It is not the project’s current priority.',
+    why: 'Future conversational systems may need grammar, idioms, proverbs, cultural context, translation and dialect awareness. Those capabilities should build on the linguistic and speech foundation.',
+    pipeline: ['Igbo ASR', 'Igbo language intelligence', 'Igbo TTS'],
+    inputs: [
+      'Reviewed text corpora and dictionaries',
+      'Speech transcripts and linguistic tools',
+      'Task-specific, culturally reviewed evaluation material',
+      'Explicit provenance and permitted uses',
+    ],
+    outputs: [
+      'Research baselines for understanding and generation',
+      'Task evaluations before broad chat claims',
+      'Documentation for translation and conversational limitations',
+    ],
+    success:
+      'Capabilities are measured task by task, dialects and cultural context receive human review, and the system does not claim fluency from a generic demo.',
+    dependencies: [
+      'Speech and linguistic foundations',
+      'Text provenance audit',
+      'Cultural and dialect review',
+      'Task-specific safety and evaluation',
+    ],
+    open: [
+      'Evaluation sets and adapters where rights allow',
+      'Prompting or fine-tuning recipes',
+      'Error analyses',
+      'Later conversational interfaces',
+    ],
+    questions: [
+      'Which tasks justify Igbo-specific modelling?',
+      'How should proverbs, idioms and cultural context be evaluated?',
+      'When should retrieval or smaller specialist models precede a language model?',
+    ],
+  },
+} as const;

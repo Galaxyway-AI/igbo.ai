@@ -9,6 +9,7 @@ import {
 } from './validation';
 import { readJSON, HTTPError } from './security';
 import type { AppEnv } from './types';
+import { articlePage } from './public';
 const tables = {
   collaborators: 'collaborators',
   supporters: 'supporters',
@@ -29,15 +30,42 @@ function audit(
   action: string,
   type: string,
   id: string,
+  previous: unknown = null,
+  next: unknown = null,
 ) {
   return env.DB.prepare(
-    'INSERT INTO audit_log(id,actor,action,entity_type,entity_id) VALUES (?,?,?,?,?)',
-  ).bind(crypto.randomUUID(), actor, action, type, id);
+    'INSERT INTO audit_log(id,actor,action,entity_type,entity_id,previous_value,new_value) VALUES (?,?,?,?,?,?,?)',
+  ).bind(
+    crypto.randomUUID(),
+    actor,
+    action,
+    type,
+    id,
+    JSON.stringify(previous),
+    JSON.stringify(next),
+  );
 }
 export async function adminAPI(request: Request, env: AppEnv, actor: string) {
   const parts = new URL(request.url).pathname.split('/').filter(Boolean);
   const collection = parts[2] as keyof typeof tables;
   const id = parts[3];
+  if (
+    ['identity', 'dashboard'].includes(collection) &&
+    request.method !== 'GET'
+  )
+    throw new HTTPError(405, 'Method not allowed.');
+  if (collection === ('identity' as string))
+    return Response.json({ email: actor, environment: env.ENVIRONMENT });
+  if (
+    collection === 'updates' &&
+    id &&
+    parts[4] === 'preview' &&
+    request.method === 'GET'
+  ) {
+    const preview = await articlePage(id, env, true);
+    if (!preview) throw new HTTPError(404, 'Update not found.');
+    return preview;
+  }
   if (collection === ('settings' as string)) {
     if (request.method === 'GET') {
       const { results } = await env.DB.prepare(
@@ -45,6 +73,11 @@ export async function adminAPI(request: Request, env: AppEnv, actor: string) {
       ).all();
       return Response.json(results);
     }
+    if (request.method !== 'PATCH')
+      throw new HTTPError(405, 'Method not allowed.');
+    const previous = await env.DB.prepare(
+      'SELECT key,value FROM site_settings',
+    ).all();
     const data = z
       .object({
         forms_enabled: z.boolean(),
@@ -73,33 +106,57 @@ export async function adminAPI(request: Request, env: AppEnv, actor: string) {
           'UPDATE site_settings SET value=?,updated_at=CURRENT_TIMESTAMP WHERE key=?',
         ).bind(String(value), key),
       ),
-      audit(env, actor, 'update', 'settings', 'site'),
+      audit(env, actor, 'update', 'settings', 'site', previous.results, data),
     ]);
     return Response.json({ ok: true });
   }
   if (collection === ('dashboard' as string)) {
-    const queries = [
-      'collaborators',
-      'supporters',
-      'research_updates',
-      'sponsorship_enquiries',
-    ] as const;
-    const counts = await env.DB.batch<{ count: number }>(
-      queries.map((table) =>
-        env.DB.prepare(`SELECT count(*) AS count FROM ${table}`),
-      ),
+    const queries = {
+      collaborators:
+        "SELECT COUNT(*) total, SUM(status='New') pending FROM collaborators",
+      sponsorship:
+        "SELECT COUNT(*) total, SUM(status IN ('New','Reviewing')) pending FROM sponsorship_enquiries",
+      supporters:
+        "SELECT SUM(status='Approved') total, SUM(status='Pending') pending FROM supporters",
+      updates:
+        "SELECT SUM(status='Published') total, SUM(status='Draft') pending FROM research_updates",
+      organisations:
+        'SELECT COUNT(*) total FROM organisations WHERE relationship_confirmed=1',
+      feedback: "SELECT COUNT(*) total FROM lab_feedback WHERE status='New'",
+      campaigns:
+        "SELECT SUM(status='Published') total, SUM(status='Draft') pending FROM funding_campaigns",
+    };
+    const keys = Object.keys(queries);
+    const counts = await env.DB.batch(
+      Object.values(queries).map((q) => env.DB.prepare(q)),
     );
-    return Response.json(
-      Object.fromEntries(
-        queries.map((key, i) => [key, counts[i].results[0]?.count || 0]),
+    const phase = await env.DB.prepare(
+      "SELECT * FROM roadmap_phases WHERE status NOT IN ('Completed','Released') ORDER BY sort_order LIMIT 1",
+    ).first();
+    const next = phase
+      ? await env.DB.prepare(
+          "SELECT title,status FROM roadmap_milestones WHERE phase_id=? AND status NOT IN ('Completed','Released') ORDER BY sort_order LIMIT 1",
+        )
+          .bind(phase.id)
+          .first()
+      : null;
+    const activity = await env.DB.prepare(
+      'SELECT actor,action,entity_type,entity_id,created_at FROM audit_log ORDER BY created_at DESC,rowid DESC LIMIT 12',
+    ).all();
+    return Response.json({
+      metrics: Object.fromEntries(
+        keys.map((key, i) => [key, counts[i].results[0]]),
       ),
-    );
+      phase,
+      next,
+      activity: activity.results,
+    });
   }
   if (!tables[collection]) throw new HTTPError(404, 'Unknown collection.');
   const table = tables[collection];
   if (request.method === 'GET') {
     const { results } = await env.DB.prepare(
-      `SELECT * FROM ${table} LIMIT 500`,
+      `SELECT * FROM ${table} ${collection === 'audit' ? 'ORDER BY created_at DESC,rowid DESC' : ''} LIMIT 500`,
     ).all();
     if (collection === 'roadmap') {
       const milestones = await env.DB.prepare(
@@ -109,6 +166,19 @@ export async function adminAPI(request: Request, env: AppEnv, actor: string) {
         results.map((p) => ({
           ...p,
           milestones: milestones.results.filter((m) => m.phase_id === p.id),
+        })),
+      );
+    }
+    if (collection === 'updates') {
+      const links = await env.DB.prepare(
+        'SELECT * FROM research_update_resources',
+      ).all();
+      return Response.json(
+        results.map((r) => ({
+          ...r,
+          resource_ids: links.results
+            .filter((l) => l.update_id === r.id)
+            .map((l) => l.resource_id),
         })),
       );
     }
@@ -128,6 +198,13 @@ export async function adminAPI(request: Request, env: AppEnv, actor: string) {
     throw new HTTPError(405, 'Method not allowed.');
   const data = await readJSON(request);
   const recordId = id || crypto.randomUUID();
+  const previous = id
+    ? await env.DB.prepare(
+        `SELECT * FROM ${table} WHERE ${collection === 'projects' ? 'slug' : 'id'}=?`,
+      )
+        .bind(id)
+        .first()
+    : null;
   if (request.method === 'PATCH') {
     const key = collection === 'projects' ? 'slug' : 'id';
     const exists = await env.DB.prepare(
@@ -148,7 +225,7 @@ export async function adminAPI(request: Request, env: AppEnv, actor: string) {
       env.DB.prepare(
         'UPDATE collaborators SET status=?,tags=?,updated_at=CURRENT_TIMESTAMP WHERE id=?',
       ).bind(parsed.status, parsed.tags, id),
-      audit(env, actor, 'update', collection, id),
+      audit(env, actor, 'update', collection, id, previous, data),
     ];
     if (parsed.note)
       statements.push(
@@ -193,7 +270,7 @@ export async function adminAPI(request: Request, env: AppEnv, actor: string) {
         parsed.status,
         id,
       ),
-      audit(env, actor, 'update', collection, id),
+      audit(env, actor, 'update', collection, id, previous, data),
     ]);
   } else if (collection === 'roadmap') {
     const parsed = phaseSchema.parse(data);
@@ -208,10 +285,11 @@ export async function adminAPI(request: Request, env: AppEnv, actor: string) {
           'INSERT INTO roadmap_milestones(id,phase_id,title,status,sort_order) VALUES(?,?,?,?,?)',
         ).bind(crypto.randomUUID(), recordId, m.title, m.status, i),
       ),
-      audit(env, actor, 'save', collection, recordId),
+      audit(env, actor, 'save', collection, recordId, previous, data),
     ]);
   } else if (collection === 'updates') {
     const parsed = updateSchema.parse(data);
+    const { resource_ids, ...content } = parsed;
     const existing = await env.DB.prepare(
       'SELECT published_at FROM research_updates WHERE id=?',
     )
@@ -219,13 +297,33 @@ export async function adminAPI(request: Request, env: AppEnv, actor: string) {
       .first<{ published_at: string | null }>();
     await env.DB.batch([
       upsert(env, table, recordId, {
-        ...parsed,
+        ...content,
         published_at:
           parsed.status === 'Published'
             ? existing?.published_at || new Date().toISOString()
-            : null,
+            : existing?.published_at || null,
       }),
-      audit(env, actor, 'save', collection, recordId),
+      env.DB.prepare(
+        'DELETE FROM research_update_resources WHERE update_id=?',
+      ).bind(recordId),
+      ...resource_ids.map((resource) =>
+        env.DB.prepare(
+          'INSERT INTO research_update_resources(update_id,resource_id) VALUES(?,?)',
+        ).bind(recordId, resource),
+      ),
+      audit(
+        env,
+        actor,
+        parsed.status === 'Published'
+          ? 'publish'
+          : previous?.status === 'Published'
+            ? 'unpublish'
+            : 'save draft',
+        collection,
+        recordId,
+        previous,
+        content,
+      ),
     ]);
   } else if (
     collection === 'resources' ||
@@ -240,7 +338,7 @@ export async function adminAPI(request: Request, env: AppEnv, actor: string) {
           : organisationSchema.parse(data);
     await env.DB.batch([
       upsert(env, table, recordId, parsed),
-      audit(env, actor, 'save', collection, recordId),
+      audit(env, actor, 'save', collection, recordId, previous, data),
     ]);
   } else if (collection === 'projects') {
     if (!id) throw new HTTPError(400, 'Project slug required.');
@@ -259,7 +357,7 @@ export async function adminAPI(request: Request, env: AppEnv, actor: string) {
       env.DB.prepare(
         'UPDATE project_statuses SET status=?,updated_at=CURRENT_TIMESTAMP WHERE slug=?',
       ).bind(parsed.status, id),
-      audit(env, actor, 'update', collection, id),
+      audit(env, actor, 'update', collection, id, previous, data),
     ]);
   } else if (collection === 'sponsorship') {
     if (!id) throw new HTTPError(400, 'Enquiry ID required.');
@@ -270,7 +368,18 @@ export async function adminAPI(request: Request, env: AppEnv, actor: string) {
       env.DB.prepare(
         'UPDATE sponsorship_enquiries SET status=? WHERE id=?',
       ).bind(parsed.status, id),
-      audit(env, actor, 'update', collection, id),
+      audit(env, actor, 'update', collection, id, previous, data),
+    ]);
+  } else if (collection === 'feedback' && id) {
+    const parsed = z
+      .object({ status: z.enum(['New', 'Reviewed', 'Archived']) })
+      .parse(data);
+    await env.DB.batch([
+      env.DB.prepare('UPDATE lab_feedback SET status=? WHERE id=?').bind(
+        parsed.status,
+        id,
+      ),
+      audit(env, actor, 'review', collection, id, previous, parsed),
     ]);
   } else {
     throw new HTTPError(405, 'This collection is read-only.');

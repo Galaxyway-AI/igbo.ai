@@ -65,13 +65,18 @@ export const phases = [
   {
     id: 'phase-0',
     title: 'Landscape & Research',
-    status: 'Research',
+    status: 'In Progress',
     description:
       'Understand the foundations. Define the questions worth asking.',
     milestones: [
-      'Review existing datasets and models',
-      'Engage linguistic and research collaborators',
-      'Define the evaluation methodology',
+      'Initial Igbo AI technology landscape review — Completed',
+      'Initial dataset and model inventory — Completed',
+      'Initial licensing landscape review — Completed',
+      'Identification of major technical gaps — Completed',
+      'Potential collaborator and research partner mapping — In Progress',
+      'Formal dataset provenance audit — Planned',
+      'Academic and community consultation — Planned',
+      'Initial benchmark specification — Planned',
     ],
   },
   {

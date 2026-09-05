@@ -27,8 +27,15 @@ test('responsive navigation reaches research', async ({ page, isMobile }) => {
     'Taking the language seriously',
   );
 });
-test('roadmap expands planned phases', async ({ page }) => {
+test('roadmap shows completed initial research while Phase 0 remains active', async ({
+  page,
+}) => {
   await page.goto('/roadmap');
+  await expect(page.locator('#phase-0')).toContainText('In Progress');
+  await expect(page.locator('#phase-0')).toContainText(
+    'Initial Igbo AI technology landscape review',
+  );
+  await expect(page.locator('#phase-0')).toContainText('Completed');
   const phase = page.locator('#phase-2');
   await phase.locator('summary').click();
   await expect(
@@ -53,15 +60,49 @@ test('collaboration form preserves input when service unavailable', async ({
   await expect(page.getByRole('status')).toContainText('not open');
   await expect(page.getByLabel('Full name *')).toHaveValue('Ada Example');
 });
-test('supporter acknowledgement is opt-in', async ({ page }) => {
+test('support page clearly holds checkout while payments are unavailable', async ({
+  page,
+}) => {
   await page.goto('/support');
-  const consent = page.getByLabel('I would like my name to appear');
-  await expect(consent).not.toBeChecked();
-  await expect(page.getByLabel('Public display name')).toBeHidden();
-  await consent.check();
-  await expect(page.getByLabel('Public display name')).toBeVisible();
-  await consent.uncheck();
-  await expect(page.getByLabel('Public display name')).toBeHidden();
+  await expect(
+    page.getByRole('heading', { name: 'Opening soon.' }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole('button', { name: 'Continue to secure checkout' }),
+  ).toBeHidden();
+  await expect(
+    page.getByRole('link', { name: 'Email support@igbo.ai' }),
+  ).toBeVisible();
+});
+test('technology navigation and individual technical content are available', async ({
+  page,
+  isMobile,
+}) => {
+  await page.goto('/');
+  if (isMobile)
+    await page.getByRole('button', { name: 'Open navigation' }).click();
+  const technology = page.locator('.technology-menu');
+  await technology.getByText('Technology', { exact: true }).click();
+  await technology.getByRole('link', { name: 'IgboPhonemizer' }).click();
+  await expect(
+    page.getByRole('heading', { name: 'IgboPhonemizer' }),
+  ).toBeVisible();
+  await expect(
+    page.getByText('grapheme-to-phoneme', { exact: false }).first(),
+  ).toBeVisible();
+  await expect(
+    page.getByText('Diacritic restoration', { exact: true }),
+  ).toBeVisible();
+});
+test('landscape explains provisional use and provides maintainable filters', async ({
+  page,
+}) => {
+  await page.goto('/research/landscape');
+  await expect(
+    page.getByRole('heading', { name: 'Igbo AI Landscape' }),
+  ).toBeVisible();
+  await expect(page.getByText('not announced partners')).toBeVisible();
+  await expect(page.getByLabel('Category')).toBeVisible();
 });
 test('admin and admin API fail closed', async ({ page, request }) => {
   if (process.env.TEST_ACCESS_DOMAIN) {

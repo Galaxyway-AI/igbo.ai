@@ -1,6 +1,14 @@
 import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
-for (const path of ['/', '/collaborate', '/support', '/roadmap', '/lab']) {
+for (const path of [
+  '/',
+  '/collaborate',
+  '/support',
+  '/roadmap',
+  '/lab',
+  '/research/landscape',
+  '/technology/igbophonemizer',
+]) {
   test(`accessibility ${path}`, async ({ page }) => {
     await page.goto(path);
     const results = await new AxeBuilder({ page })

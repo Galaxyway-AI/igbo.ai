@@ -1,7 +1,19 @@
 import { prepareTurnstile, formData, submitJSON } from './forms';
 const form = document.querySelector<HTMLFormElement>('#support-form');
 if (form) {
-  prepareTurnstile(form).catch(() => {});
+  fetch('/api/config')
+    .then((r) => {
+      if (!r.ok) throw Error();
+      return r.json();
+    })
+    .then((config) => {
+      if (config.paymentsEnabled) {
+        form.hidden = false;
+        document.querySelector('#support-opening')?.setAttribute('hidden', '');
+        return prepareTurnstile(form);
+      }
+    })
+    .catch(() => {});
   const amount = form.querySelector<HTMLInputElement>('[name=amount]')!;
   const choices = form.querySelectorAll<HTMLButtonElement>('[data-amount]');
   choices.forEach((button) =>

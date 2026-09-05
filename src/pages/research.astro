@@ -2,50 +2,6 @@
 import Layout from '../layouts/Layout.astro';
 import PageHero from '../components/PageHero.astro';
 import { hypothesis } from '../data/project';
-const resources = [
-  [
-    'Nkọwa okwu / IgboAPI',
-    'Dictionary & pronunciation',
-    'A reference point for Igbo lexical resources and language tooling.',
-    'https://igboapi.com',
-  ],
-  [
-    'Mozilla Common Voice',
-    'Speech data',
-    'A community speech data initiative to examine for language coverage, consent and licensing.',
-    'https://commonvoice.mozilla.org',
-  ],
-  [
-    'Google FLEURS',
-    'Multilingual speech',
-    'A multilingual speech benchmark informing evaluation design.',
-    'https://huggingface.co/datasets/google/fleurs',
-  ],
-  [
-    'Masakhane',
-    'Research community',
-    'African language NLP research and open collaboration.',
-    'https://www.masakhane.io',
-  ],
-  [
-    'African Voices / Data Science Nigeria',
-    'Speech resources',
-    'An initiative to examine within the African speech data landscape.',
-    'https://www.datasciencenigeria.org',
-  ],
-  [
-    'Google WAXAL',
-    'Speech research',
-    'Part of the landscape review for African language speech resources.',
-    'https://research.google',
-  ],
-  [
-    'NCAIR / Awarri',
-    'Language initiatives',
-    'Nigerian language technology efforts included in our landscape review.',
-    'https://ncair.nitda.gov.ng',
-  ],
-];
 ---
 
 <Layout
@@ -115,53 +71,14 @@ const resources = [
       These resources and communities inform the research landscape. Inclusion
       does not imply a partnership, endorsement, data access or permission to
       reuse material. Coverage and licences must be checked per resource.
-    </p><div class="resource-grid">
-      {
-        resources.map(([name, type, desc, url]) => (
-          <article class="resource-card">
-            <>
-              <span class="eyebrow">{type}</span>
-              <h3>{name}</h3>
-              <p>{desc}</p>
-              <a href={url} target="_blank" rel="noopener noreferrer">
-                Visit source ↗
-              </a>
-            </>
-          </article>
-        ))
-      }
-    </div><div class="panel">
-      <h3>Further literature review</h3><p>
-        IgboBERT, IgboBERTa, academic work on diacritic restoration and Igbo
-        NLP, and independent ASR and TTS projects are part of the planned
-        review. Verified paper-level citations, versions and licence notes will
-        be added as records are reviewed.
-      </p>
-    </div><p class="fine-print" style="margin-top:20px">
-      Programme background: <a href="https://www.galaxyway.ai/research/igbo-ai"
-        >Galaxyway AI’s Igbo AI research initiative ↗</a>
-    </p><div id="managed-resources" class="resource-grid"></div>
+    </p><div class="panel">
+      <h3>The initial landscape review is complete.</h3><p>
+        Our living register brings together speech data, language models,
+        pronunciation resources and access considerations. Phase 0 continues
+        with collaborator mapping, provenance auditing and consultation.
+      </p><a class="button" href="/research/landscape"
+        >Explore the Igbo AI Landscape →</a
+      >
+    </div>
   </section></Layout
 >
-<script>
-  fetch('/api/public/resources')
-    .then((r) => (r.ok ? r.json() : []))
-    .then((rows: { title: string; summary: string; url: string }[]) => {
-      const root = document.querySelector('#managed-resources');
-      rows.forEach((row) => {
-        const article = document.createElement('article');
-        article.className = 'resource-card';
-        const h = document.createElement('h3');
-        h.textContent = row.title;
-        const p = document.createElement('p');
-        p.textContent = row.summary;
-        const a = document.createElement('a');
-        a.textContent = 'Visit reference ↗';
-        a.href = row.url;
-        a.rel = 'noopener noreferrer';
-        article.append(h, p, a);
-        root?.append(article);
-      });
-    })
-    .catch(() => {});
-</script>

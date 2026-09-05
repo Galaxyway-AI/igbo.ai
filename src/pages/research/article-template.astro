@@ -1,0 +1,20 @@
+---
+import Layout from '../../layouts/Layout.astro';
+---
+
+<Layout title="Research update" noindex>
+  <section class="section container article-layout">
+    <a href="/updates" class="text-link">← Research journal</a>
+    <article itemscope itemtype="https://schema.org/Article">
+      <span class="eyebrow" id="article-status">RESEARCH UPDATE</span>
+      <h1 id="article-title" itemprop="headline">Research update</h1>
+      <p class="lead" id="article-summary" itemprop="description"></p>
+      <p class="fine-print" id="article-meta"></p>
+      <div class="prose" id="article-body" itemprop="articleBody"></div>
+      <section id="article-references" aria-label="References"></section>
+    </article>
+    <a href="/research/landscape" class="text-link"
+      >Explore the living landscape →</a
+    >
+  </section>
+</Layout>

@@ -17,89 +17,29 @@ import { phases } from '../data/project';
       {
         phases.map((phase, i) => (
           <details class="phase-details" id={phase.id} open={i === 0}>
-            <>
-              <summary>
-                <>
-                  <span>{String(i).padStart(2, '0')}</span>
-                  <h2>{phase.title}</h2>
-                  <span class="status">{phase.status}</span>
-                </>
-              </summary>
-              <div class="phase-body">
-                <>
-                  <p>{phase.description}</p>
-                  <ul>
-                    {phase.milestones.map((m) => (
-                      <li>
-                        {m} <small>— Planned</small>
-                      </li>
-                    ))}
-                  </ul>
-                  <div class="phase-meta">
-                    Target: To be confirmed · Milestone completion will be
-                    reported when verified.
-                  </div>
-                </>
-              </div>
-            </>
+            <summary>
+              <>
+                <span>{String(i).padStart(2, '0')}</span>
+                <h2>{phase.title}</h2>
+              </>
+              <span class="status">{phase.status}</span>
+            </summary>
+            <div class="phase-body">
+              <>
+                <p>{phase.description}</p>
+                <ul>
+                  {phase.milestones.map((milestone) => (
+                    <li>{milestone}</li>
+                  ))}
+                </ul>
+              </>
+              <div class="phase-meta">Target: To be confirmed</div>
+            </div>
           </details>
         ))
       }
     </div><div style="margin-top:35px">
-      <a class="button" href="/collaborate">Help move the research forward ↗</a>
+      <a class="button" href="/collaborate">Help move the research forward →</a>
     </div>
   </section></Layout
 >
-<script>
-  fetch('/api/public/roadmap')
-    .then((r) => (r.ok ? r.json() : []))
-    .then(
-      (
-        rows: {
-          id: string;
-          title: string;
-          status: string;
-          description: string;
-          milestones: { title: string; status: string }[];
-          target_date: string | null;
-        }[],
-      ) => {
-        if (!rows.length) return;
-        const root = document.querySelector('#roadmap-phases');
-        if (!root) return;
-        root.replaceChildren();
-        rows.forEach((row, i) => {
-          const d = document.createElement('details');
-          d.className = 'phase-details';
-          d.id = row.id;
-          d.open = i === 0;
-          const s = document.createElement('summary');
-          const num = document.createElement('span');
-          num.textContent = String(i).padStart(2, '0');
-          const h = document.createElement('h2');
-          h.textContent = row.title;
-          const badge = document.createElement('span');
-          badge.className = 'status';
-          badge.textContent = row.status;
-          s.append(num, h, badge);
-          const body = document.createElement('div');
-          body.className = 'phase-body';
-          const p = document.createElement('p');
-          p.textContent = row.description;
-          const ul = document.createElement('ul');
-          row.milestones.forEach((m) => {
-            const li = document.createElement('li');
-            li.textContent = `${m.title} — ${m.status}`;
-            ul.append(li);
-          });
-          const meta = document.createElement('div');
-          meta.className = 'phase-meta';
-          meta.textContent = `Target: ${row.target_date || 'To be confirmed'}`;
-          body.append(p, ul, meta);
-          d.append(s, body);
-          root.append(d);
-        });
-      },
-    )
-    .catch(() => {});
-</script>

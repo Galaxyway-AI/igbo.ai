@@ -18,41 +18,7 @@ import PageHero from '../components/PageHero.astro';
       </h2><p>
         There are no published research updates yet. The roadmap outlines our
         intended direction without implying completed experiments or results.
-      </p><a class="text-link" href="/roadmap">Explore the roadmap ↗</a>
+      </p><a class="text-link" href="/roadmap">Explore the roadmap →</a>
     </div>
   </section></Layout
 >
-<script>
-  fetch('/api/public/updates')
-    .then((r) => (r.ok ? r.json() : []))
-    .then(
-      (
-        rows: {
-          slug: string;
-          title: string;
-          summary: string;
-          published_at: string;
-        }[],
-      ) => {
-        if (rows.length)
-          document.querySelector('#updates-empty')?.setAttribute('hidden', '');
-        rows.forEach((row) => {
-          const a = document.createElement('a');
-          a.className = 'resource-card';
-          a.href = '/updates/' + encodeURIComponent(row.slug);
-          const h = document.createElement('h3');
-          h.textContent = row.title;
-          const p = document.createElement('p');
-          p.textContent = row.summary;
-          const date = document.createElement('span');
-          date.className = 'eyebrow';
-          date.textContent = new Date(row.published_at).toLocaleDateString(
-            'en-GB',
-          );
-          a.append(date, h, p);
-          document.querySelector('#updates-list')?.append(a);
-        });
-      },
-    )
-    .catch(() => {});
-</script>

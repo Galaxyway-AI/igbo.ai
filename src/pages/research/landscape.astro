@@ -1,0 +1,185 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import PageHero from '../../components/PageHero.astro';
+import { hypothesis } from '../../data/project';
+---
+
+<Layout
+  title="Igbo AI Landscape"
+  description="A living review of Igbo speech, language and linguistic resources, their access conditions and the infrastructure still needed."
+>
+  <PageHero
+    eyebrow="RESEARCH / LANDSCAPE"
+    title="Igbo AI Landscape"
+    description="What already exists — and what still needs to be built."
+  />
+  <section class="section container">
+    <div class="two-col">
+      <div>
+        <span class="eyebrow">AN INITIAL ASSESSMENT</span><h2>
+          Begin with the work that exists.
+        </h2>
+      </div><div class="prose">
+        <p>
+          Igbo language technology has an active ecosystem. This living register
+          records what we reviewed, how it could inform research and what still
+          needs permission or a deeper audit.
+        </p><p>
+          These are research resources, not announced partners. “Reuse”
+          identifies a candidate subject to licence and provenance checks; it
+          does not certify permission.
+        </p><p id="landscape-reviewed">
+          Review dates are recorded per resource.
+        </p><a href="/updates/igbo-ai-landscape-review-v0-1" class="text-link"
+          >Read Landscape Review v0.1 →</a
+        >
+      </div>
+    </div>
+    <div class="landscape-filters">
+      <label
+        >Category<select id="landscape-category"
+          ><option value="">All categories</option></select
+        ></label
+      ><label
+        >Licence / access<select id="landscape-access"
+          ><option value="">All access considerations</option></select
+        ></label
+      ><p id="landscape-count" role="status"></p>
+    </div>
+    <div
+      class="landscape-scroll"
+      role="region"
+      aria-label="Research landscape matrix; scroll horizontally for all columns"
+      tabindex="0"
+    >
+      <table class="landscape-table">
+        <caption>Resources reviewed — potential roles are provisional</caption
+        ><thead
+          ><tr
+            >{
+              [
+                'Resource / project',
+                'Category',
+                'What it provides',
+                'Licence / access considerations',
+                'Potential role for Igbo AI',
+                'Review status',
+              ].map((h) => <th scope="col">{h}</th>)
+            }</tr
+          ></thead
+        ><tbody id="landscape-rows"></tbody>
+      </table>
+    </div><p id="landscape-empty" hidden>No resources match these filters.</p>
+  </section>
+  <section class="section soft-section">
+    <div class="container">
+      <span class="eyebrow">REUSE / BENCHMARK / BUILD</span><h2>
+        What we can build upon.<br />What we still need to build.
+      </h2><div class="research-map">
+        <article class="panel">
+          <h3>Build upon</h3><p>
+            Subject to compatible terms and provenance.
+          </p><ul>
+            <li>Nkọwa okwu / IgboAPI</li><li>WAXAL</li><li>
+              Common Voice and FLEURS
+            </li><li>African Voices after review</li><li>
+              IgboBERT / IgboBERTa
+            </li><li>Compatible Masakhane resources</li>
+          </ul>
+        </article>
+        <article class="panel">
+          <h3>Benchmark against</h3><p>
+            With documented evaluation protocols.
+          </p><ul>
+            <li>Existing Igbo TTS models</li><li>
+              Existing Igbo ASR systems
+            </li><li>Meta multilingual speech systems</li><li>
+              Nigerian language models
+            </li><li>Commercial AI voices when formal evaluation begins</li>
+          </ul>
+        </article>
+        <article class="panel">
+          <h3>Build</h3><p>Planned infrastructure, not released systems.</p><ul>
+            <li>IgboPronounce, IgboTone and IgboPhonemizer</li><li>
+              IgboSpeech Gold: verified speech
+            </li><li>IgboSpeechBench</li><li>
+              Dialect-conditioned TTS and permissive ASR
+            </li><li>Future Igbo language intelligence</li><li>
+              Community speech and evaluation infrastructure
+            </li>
+          </ul>
+        </article>
+      </div>
+    </div>
+  </section>
+  <section class="section container two-col">
+    <div>
+      <span class="eyebrow">THE INFRASTRUCTURE GAP</span><h2>
+        A connected open foundation.
+      </h2>
+    </div><div class="prose">
+      <p>
+        Our initial landscape review did not identify a single mature open
+        project bringing pronunciation, tones, phonetics, dialects, verified
+        speech, TTS, ASR, native-speaker evaluation, open tooling and
+        responsible data provenance together.
+      </p><p>
+        This is an initial finding, open to correction. The next work is to test
+        the gaps carefully and build reusable components with the research
+        community.
+      </p><a href="/ethics" class="text-link">Dataset governance →</a>
+    </div>
+  </section>
+  <section class="section soft-section">
+    <div class="container prose">
+      <span class="eyebrow">OUR FIRST RESEARCH QUESTION</span><h2>
+        {hypothesis}
+      </h2><p>
+        A hypothesis to investigate. No benchmark superiority has been
+        demonstrated.
+      </p><a class="button" href="/collaborate">Help shape the research →</a>
+    </div>
+  </section>
+</Layout>
+<script>
+  const rows = [
+    ...document.querySelectorAll<HTMLTableRowElement>('#landscape-rows tr'),
+  ];
+  const category = document.querySelector<HTMLSelectElement>(
+    '#landscape-category',
+  )!;
+  const access =
+    document.querySelector<HTMLSelectElement>('#landscape-access')!;
+  for (const [select, key] of [
+    [category, 'category'],
+    [access, 'access'],
+  ] as const) {
+    [...new Set(rows.map((row) => row.dataset[key] || ''))]
+      .filter(Boolean)
+      .sort()
+      .forEach((value) => {
+        const option = document.createElement('option');
+        option.value = value;
+        option.textContent = value;
+        select.append(option);
+      });
+  }
+  function filter() {
+    let count = 0;
+    rows.forEach((row) => {
+      row.hidden = Boolean(
+        (category.value && row.dataset.category !== category.value) ||
+        (access.value && row.dataset.access !== access.value),
+      );
+      if (!row.hidden) count++;
+    });
+    document.querySelector('#landscape-count')!.textContent =
+      `${count} resources shown`;
+    document
+      .querySelector('#landscape-empty')!
+      .toggleAttribute('hidden', count > 0);
+  }
+  category.addEventListener('change', filter);
+  access.addEventListener('change', filter);
+  filter();
+</script>

@@ -3,7 +3,8 @@
 ## Required to deploy
 
 - [ ] Cloudflare account and zone access for `igbo.ai`.
-- [ ] Confirm whether `staging.igbo.ai` or a workers.dev staging URL should be used.
+- [x] Existing workers.dev staging URL retained for Phase 2 review.
+- [ ] Owner approval of the Phase 2 staging release before final-domain deployment.
 - [x] Staging D1 database created and migrated; production database still required.
 - [x] Staging Cloudflare Access configured for `admin@igbo.ai`; owner sign-in and protected data verified. Production Access configuration still required.
 - [x] Repository: `https://github.com/Galaxyway-AI/igbo.ai`; initial source branch: `main`.

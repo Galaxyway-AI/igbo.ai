@@ -1,6 +1,126 @@
 import type { AppEnv } from './types';
 import { HTTPError } from './security';
 import { escapeHTML } from './validation';
+export async function articlePage(
+  identifier: string,
+  env: AppEnv,
+  preview = false,
+) {
+  const row = await env.DB.prepare(
+    `SELECT * FROM research_updates WHERE ${preview ? 'id=?' : "slug=? AND status='Published'"}`,
+  )
+    .bind(identifier)
+    .first<Record<string, string>>();
+  if (!row) return null;
+  const e = escapeHTML;
+  const canonical = `https://igbo.ai/updates/${encodeURIComponent(row.slug)}`;
+  const resources = await env.DB.prepare(
+    "SELECT r.* FROM resources r JOIN research_update_resources l ON l.resource_id=r.id WHERE l.update_id=? AND r.status='Published' ORDER BY r.title",
+  )
+    .bind(row.id)
+    .all<Record<string, string>>();
+  const html = row.content
+    .split(/\n\s*\n/)
+    .map((p) =>
+      p.startsWith('## ')
+        ? `<h2>${e(p.slice(3))}</h2>`
+        : `<p>${e(p).replaceAll('\n', '<br>')}</p>`,
+    )
+    .join('');
+  const source = await env.ASSETS.fetch(
+    new Request(new URL('/research/article-template/', env.SITE_URL)),
+  );
+  const rendered = new HTMLRewriter()
+    .on('title', {
+      element(el) {
+        el.setInnerContent(`${e(row.title)} — Igbo AI`, { html: true });
+      },
+    })
+    .on('link[rel="canonical"]', {
+      element(el) {
+        el.setAttribute('href', canonical);
+      },
+    })
+    .on('meta[name="robots"]', {
+      element(el) {
+        if (!preview) el.remove();
+      },
+    })
+    .on('meta[name="description"],meta[property="og:description"]', {
+      element(el) {
+        el.setAttribute('content', row.seo_description || row.summary);
+      },
+    })
+    .on('meta[property="og:title"]', {
+      element(el) {
+        el.setAttribute('content', row.title);
+      },
+    })
+    .on('meta[property="og:url"]', {
+      element(el) {
+        el.setAttribute('content', canonical);
+      },
+    })
+    .on('meta[property="og:type"]', {
+      element(el) {
+        el.setAttribute('content', 'article');
+      },
+    })
+    .on('head', {
+      element(el) {
+        el.append(
+          `<meta property="article:published_time" content="${e(row.published_at || '')}"><meta property="article:modified_time" content="${e(row.updated_at)}">`,
+          { html: true },
+        );
+      },
+    })
+    .on('#article-title', {
+      element(el) {
+        el.setInnerContent(e(row.title), { html: true });
+      },
+    })
+    .on('#article-summary', {
+      element(el) {
+        el.setInnerContent(e(row.summary), { html: true });
+      },
+    })
+    .on('#article-status', {
+      element(el) {
+        el.setInnerContent(
+          preview ? 'PRIVATE PREVIEW · ' + e(row.status) : 'RESEARCH UPDATE',
+          { html: true },
+        );
+      },
+    })
+    .on('#article-meta', {
+      element(el) {
+        el.setInnerContent(
+          `${e(row.author_organisation)} · ${row.published_at ? 'Published ' + e(row.published_at.slice(0, 10)) : 'Unpublished draft'} · Updated ${e(row.updated_at.slice(0, 10))}`,
+          { html: true },
+        );
+      },
+    })
+    .on('#article-body', {
+      element(el) {
+        el.setInnerContent(html, { html: true });
+      },
+    })
+    .on('#article-references', {
+      element(el) {
+        el.setInnerContent(
+          resources.results.length
+            ? `<h2>Sources & references</h2><p>External work reviewed; inclusion does not imply partnership or permission to reuse.</p><ol>${resources.results.map((r) => `<li><a href="${e(r.url)}" target="_blank" rel="noopener noreferrer">${e(r.title)} ↗</a> — ${e(r.organisation)}. ${e(r.licence)}. Last reviewed: ${e(r.last_reviewed_at || 'Not recorded')}.</li>`).join('')}</ol>`
+            : '',
+          { html: true },
+        );
+      },
+    })
+    .transform(source);
+  rendered.headers.delete('ETag');
+  rendered.headers.delete('Last-Modified');
+  rendered.headers.set('Cache-Control', 'no-store');
+  return rendered;
+}
 export async function publicAPI(path: string, env: AppEnv) {
   if (path === 'roadmap') {
     const phases = await env.DB.prepare(
@@ -18,11 +138,11 @@ export async function publicAPI(path: string, env: AppEnv) {
   }
   const queries: Record<string, string> = {
     supporters:
-      "SELECT public_display_name,organisation,website FROM supporters s WHERE status='Approved' AND public_consent=1 AND anonymous=0 AND EXISTS(SELECT 1 FROM support_transactions t WHERE t.supporter_id=s.id AND t.status='Paid') ORDER BY created_at",
+      "SELECT public_display_name,CASE WHEN display_organisation=1 THEN organisation ELSE '' END AS organisation,website FROM supporters s WHERE status='Approved' AND public_consent=1 AND anonymous=0 AND EXISTS(SELECT 1 FROM support_transactions t WHERE t.supporter_id=s.id AND t.status='Paid') ORDER BY created_at",
     updates:
       "SELECT slug,title,summary,published_at FROM research_updates WHERE status='Published' ORDER BY published_at DESC",
     resources:
-      "SELECT title,summary,url,category,licence,doi FROM resources WHERE status='Published'",
+      "SELECT id,title,organisation,summary,url,category,licence,licence_url,access_status,potential_role,notes,last_reviewed_at,verified,doi FROM resources WHERE status='Published'",
     campaigns:
       "SELECT title,summary,target_minor,verified_total_minor,currency FROM funding_campaigns WHERE status='Published'",
     organisations:
@@ -32,26 +152,4 @@ export async function publicAPI(path: string, env: AppEnv) {
   if (!queries[path]) throw new HTTPError(404, 'Not found.');
   const { results } = await env.DB.prepare(queries[path]).all();
   return Response.json(results);
-}
-export async function articlePage(slug: string, env: AppEnv) {
-  const row = await env.DB.prepare(
-    "SELECT * FROM research_updates WHERE slug=? AND status='Published'",
-  )
-    .bind(slug)
-    .first<{
-      title: string;
-      summary: string;
-      content: string;
-      published_at: string;
-      author_organisation: string;
-      seo_description: string;
-      related_url: string;
-    }>();
-  if (!row) return null;
-  const e = escapeHTML;
-  const canonical = `${env.SITE_URL}/updates/${encodeURIComponent(slug)}`;
-  return new Response(
-    `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${e(row.title)} — Igbo AI</title><meta name="description" content="${e(row.seo_description || row.summary)}"><link rel="canonical" href="${e(canonical)}"><meta property="og:type" content="article"><meta property="og:title" content="${e(row.title)}"><meta property="og:description" content="${e(row.summary)}"><meta property="og:url" content="${e(canonical)}"><meta property="og:image" content="${e(env.SITE_URL)}/social.png"><meta property="article:published_time" content="${e(row.published_at)}"><meta name="twitter:card" content="summary_large_image"><style>body{margin:0;background:#f8f7f2;color:#233b2d;font:16px/1.9 system-ui}main,nav{max-width:760px;margin:auto;padding:35px 24px}nav{border-bottom:1px solid #d5ddcf}a{color:#224c3b}h1{font:400 clamp(32px,5vw,52px)/1.25 Georgia}article{white-space:pre-wrap;color:#53624d}small{color:#718067}footer{padding-block:35px}</style></head><body><nav><a href="/">Igbo AI</a> · <a href="/updates">Research journal</a></nav><main><small>RESEARCH UPDATE · <time datetime="${e(row.published_at)}">${e(row.published_at.slice(0, 10))}</time></small><h1>${e(row.title)}</h1><p>${e(row.summary)}</p><p><small>${e(row.author_organisation || 'Igbo AI')}</small></p><article>${e(row.content)}</article>${row.related_url ? `<p><a href="${e(row.related_url)}" rel="noopener noreferrer">Related reference ↗</a></p>` : ''}<footer><a href="/updates">← All research updates</a><p><small>Igbo AI is an open language technology initiative led by Galaxyway AI.</small></p></footer></main></body></html>`,
-    { headers: { 'Content-Type': 'text/html;charset=utf-8' } },
-  );
 }

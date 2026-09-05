@@ -20,12 +20,14 @@ beforeAll(async () => {
     }),
   );
   const db = await mf.getD1Database('DB');
-  const sql = await readFile(
-    new URL('../migrations/0001_initial.sql', import.meta.url),
-    'utf8',
-  );
-  for (const statement of sql.split(';').filter((s) => s.trim()))
-    await db.prepare(statement).run();
+  for (const migration of ['0001_initial.sql', '0002_research_metadata.sql']) {
+    const sql = await readFile(
+      new URL(`../migrations/${migration}`, import.meta.url),
+      'utf8',
+    );
+    for (const statement of sql.split(';').filter((s) => s.trim()))
+      await db.prepare(statement).run();
+  }
   env = {
     DB: db,
     SITE_URL: 'https://igbo.ai',
