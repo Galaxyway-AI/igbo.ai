@@ -61,6 +61,24 @@ export async function managedContent(
     });
   }
   if (path === '/' || path === '/updates') {
+    if (path === '/') {
+      const phases = await env.DB.prepare(
+        'SELECT id,title,description,status FROM roadmap_phases ORDER BY sort_order LIMIT 4',
+      ).all<Record<string, string>>();
+      rewriter = rewriter.on('#homepage-roadmap', {
+        element(el) {
+          el.setInnerContent(
+            phases.results
+              .map(
+                (p, i) =>
+                  `<a href="/roadmap#${e(p.id)}" class="preview-phase${i === 0 ? ' current' : ''}"><div class="phase-line"><span>${String(i).padStart(2, '0')}</span><i></i></div><span class="status">${e(p.status)}</span><h3>${e(p.title)}</h3><p>${e(p.description)}</p></a>`,
+              )
+              .join(''),
+            { html: true },
+          );
+        },
+      });
+    }
     const rows = await env.DB.prepare(
       "SELECT slug,title,summary,published_at FROM research_updates WHERE status='Published' ORDER BY published_at DESC LIMIT 30",
     ).all<Record<string, string>>();
@@ -68,7 +86,7 @@ export async function managedContent(
     const html = selected
       .map(
         (r) =>
-          `<a class="resource-card" href="/updates/${e(r.slug)}"><span class="eyebrow">${e(r.published_at.slice(0, 10))}</span><h3>${e(r.title)}</h3><p>${e(r.summary)}</p><span>Read research update →</span></a>`,
+          `<a class="resource-card" href="/updates/${e(r.slug)}"><span class="eyebrow">${path === '/' && r.slug === 'igbo-ai-landscape-review-v0-1' ? 'INITIAL LANDSCAPE REVIEW COMPLETE' : e(r.published_at.slice(0, 10))}</span><h3>${e(r.title)}</h3><p>${e(r.summary)}</p><span>Read the review →</span></a>`,
       )
       .join('');
     rewriter = rewriter

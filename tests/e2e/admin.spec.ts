@@ -28,6 +28,18 @@ test('Research Desk metrics, navigation and referenced draft workflow', async ({
         activity: [],
       },
       updates: [],
+      supporters: [
+        {
+          id: 'consent-fixture',
+          public_display_name: 'Fixture supporter',
+          status: 'Pending',
+          public_consent: 1,
+          anonymous: 0,
+          display_organisation: 0,
+          display_amount: 0,
+          display_level: 0,
+        },
+      ],
       resources: [{ id: 'waxal', title: 'Google WAXAL', status: 'Published' }],
       settings: [
         { key: 'forms_enabled', value: 'false' },
@@ -89,4 +101,18 @@ test('Research Desk metrics, navigation and referenced draft workflow', async ({
       () => document.documentElement.scrollWidth <= window.innerWidth,
     ),
   ).toBe(true);
+  if (
+    !(await page
+      .getByRole('button', { name: 'Supporters', exact: true })
+      .isVisible())
+  )
+    await page.locator('.admin-sidebar summary').click();
+  await page.getByRole('button', { name: 'Supporters', exact: true }).click();
+  await expect(page.locator('#admin-records')).toContainText(
+    'public consent: YES',
+  );
+  await expect(page.locator('#admin-records')).toContainText('anonymous: NO');
+  await expect(page.locator('#admin-records')).toContainText(
+    'display organisation: NO',
+  );
 });

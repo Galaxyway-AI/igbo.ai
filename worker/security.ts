@@ -171,5 +171,11 @@ export function secure(response: Response, privateResponse = false) {
     headers.set('Cache-Control', 'no-store');
     headers.set('X-Robots-Tag', 'noindex, nofollow');
   }
+  // Revalidate HTML after deployments; hashed asset files retain their caching.
+  if (
+    headers.get('Content-Type')?.includes('text/html') &&
+    headers.get('Cache-Control') !== 'no-store'
+  )
+    headers.set('Cache-Control', 'no-cache');
   return new Response(response.body, { status: response.status, headers });
 }

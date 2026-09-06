@@ -1787,6 +1787,9 @@
 }
 
 /* Phase 2: existing palette and typography, richer operational layouts. */
+.admin-document {
+  scroll-behavior: auto;
+}
 .admin-topbar {
   display: flex;
   align-items: center;
@@ -2150,10 +2153,30 @@
 .technology-flow + .technology-flow {
   margin-top: 28px;
 }
+.technology-flow.long-flow {
+  flex-direction: column;
+  align-items: stretch;
+  max-width: 520px;
+  margin-inline: auto;
+}
+.technology-flow.long-flow span {
+  max-width: none;
+}
+.technology-flow.long-flow b {
+  transform: none;
+  text-align: center;
+}
 .technology-columns {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: clamp(25px, 5vw, 65px);
+}
+.technology-focus {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 14px 40px;
+  padding-left: 22px;
+  margin-top: 24px;
 }
 .technology-columns article {
   border-top: 1px solid #aebca7;

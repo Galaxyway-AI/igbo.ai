@@ -1,4 +1,5 @@
 export {};
+document.documentElement.classList.add('admin-document');
 type RecordData = Record<string, unknown>;
 const root = document.querySelector<HTMLElement>('#admin-records')!;
 const status = document.querySelector<HTMLElement>('#admin-status')!;
@@ -49,7 +50,6 @@ const schemas: Record<string, Record<string, string | string[]>> = {
     milestones: 'milestones',
   },
   updates: {
-    resource_ids: 'references',
     title: 'text',
     slug: 'text',
     summary: 'textarea',
@@ -57,6 +57,7 @@ const schemas: Record<string, Record<string, string | string[]>> = {
     author_organisation: 'text',
     related_url: 'url',
     seo_description: 'text',
+    resource_ids: 'references',
     status: ['Draft', 'Published'],
   },
   resources: {
@@ -577,8 +578,9 @@ document
       await load(name);
       const form = editor({});
       root.prepend(form);
-      form.querySelector('input,textarea')?.scrollIntoView({ block: 'center' });
-      form.querySelector<HTMLInputElement>('input,textarea')?.focus();
+      const firstField = form.querySelector<HTMLInputElement>('input,textarea');
+      firstField?.focus({ preventScroll: true });
+      firstField?.scrollIntoView({ block: 'center', behavior: 'instant' });
     }),
   );
 create.addEventListener('keydown', (event) => {

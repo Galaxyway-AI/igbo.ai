@@ -48,14 +48,25 @@ const flows =
     <div class="container">
       <span class="eyebrow">CONCEPTUAL FLOW</span>
       {
-        flows.map((flow) => (
-          <div class="technology-flow">
-            {flow.map((step: string, i: number) => (
-              <>
-                <span>{step}</span>
-                {i < flow.length - 1 && <b aria-hidden="true">↓</b>}
-              </>
-            ))}
+        flows.map((flow, flowIndex) => (
+          <div>
+            {tech.slug === 'igbospeech' && (
+              <h2>
+                {flowIndex === 0
+                  ? 'Text-to-speech (TTS)'
+                  : 'Automatic speech recognition (ASR)'}
+              </h2>
+            )}
+            <div
+              class:list={['technology-flow', { 'long-flow': flow.length > 4 }]}
+            >
+              {flow.map((step: string, i: number) => (
+                <>
+                  <span>{step}</span>
+                  {i < flow.length - 1 && <b aria-hidden="true">↓</b>}
+                </>
+              ))}
+            </div>
           </div>
         ))
       }
@@ -68,7 +79,9 @@ const flows =
         <ul>{details.inputs.map((item: string) => <li>{item}</li>)}</ul>
       </article>
       <article>
-        <span class="eyebrow">WHAT HAPPENS?</span><p>{tech.detail}</p>
+        <span class="eyebrow">PROCESSING / PROPOSED ARCHITECTURE</span><p>
+          {details.processing}
+        </p>
       </article>
       <article>
         <span class="eyebrow">WHAT COMES OUT?</span>
@@ -76,11 +89,17 @@ const flows =
       </article>
     </div>
   </section>
+  <section class="section container">
+    <h2>{details.focusTitle}</h2>
+    <ul class="technology-focus">
+      {details.focus.map((item: string) => <li>{item}</li>)}
+    </ul>
+  </section>
   <section class="section soft-section">
     <div class="container two-col">
       <div>
         <span class="eyebrow">WHAT DOES SUCCESS LOOK LIKE?</span>
-        <h2>Quality must be demonstrated.</h2><p>{details.success}</p>
+        <h2>{details.successTitle}</h2><p>{details.success}</p>
       </div>
       <div>
         <span class="eyebrow">DEPENDENCIES</span>

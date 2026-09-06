@@ -32,7 +32,7 @@ function edit(collection: string, id: string | undefined, body: unknown) {
 beforeAll(async () => {
   const code = await build({
     stdin: {
-      contents: `import worker from './worker/index'; import {adminAPI} from './worker/admin'; export default {fetch(request,env,ctx){ const url=new URL(request.url); if(url.pathname.startsWith('/test-preview/')) return adminAPI(new Request('https://igbo.ai/api/admin/updates/'+url.pathname.split('/')[2]+'/preview'),env,'isolated-test'); return worker.fetch(request,env,ctx); }}`,
+      contents: `import worker from './worker/index'; import {adminAPI} from './worker/admin'; export default {fetch(request,env,ctx){ const url=new URL(request.url); if(url.pathname.startsWith('/test-preview/')) return adminAPI(new Request('https://igbo.ai/api/admin/updates/'+url.pathname.split('/')[2]+'/preview'),env,'isolated-test'); if(url.pathname.startsWith('/test-production/')) {url.pathname=url.pathname.replace('/test-production','');return worker.fetch(new Request(url,request),{...env,ENVIRONMENT:'production',SITE_URL:'https://igbo.ai'},ctx);} return worker.fetch(request,env,ctx); }}`,
       resolveDir: process.cwd(),
     },
     bundle: true,
@@ -55,7 +55,7 @@ beforeAll(async () => {
           new Response(
             new URL(request.url).pathname.includes('article-template')
               ? articleFixture
-              : '<!doctype html><html><body><div id="landscape-reviewed"></div><table><tbody id="landscape-rows"></tbody></table><div id="roadmap-phases"></div><div id="updates-list"></div><div id="latest-research"></div><span data-tech-status>Planned</span></body></html>',
+              : '<!doctype html><html><body><div id="landscape-reviewed"></div><table><tbody id="landscape-rows"></tbody></table><div id="roadmap-phases"></div><div id="homepage-roadmap"></div><div id="updates-list"></div><div id="latest-research"></div><span data-tech-status>Planned</span></body></html>',
             { headers: { 'Content-Type': 'text/html' } },
           ),
       },
@@ -71,12 +71,63 @@ beforeAll(async () => {
     '0001_initial.sql',
     '0002_research_metadata.sql',
     '0003_landscape_review.sql',
+    '0004_ibo_dict.sql',
   ]);
 }, 30000);
 afterAll(async () => {
   await mf?.dispose();
 });
 describe('Phase 2 research activation', () => {
+  it('maintains thirteen distinct sources including the gated ibo-dict dataset', async () => {
+    const rows = await env.DB.prepare(
+      "SELECT id FROM resources WHERE status='Published'",
+    ).all();
+    expect(rows.results).toHaveLength(13);
+    const resource = await env.DB.prepare(
+      "SELECT summary,notes,licence FROM resources WHERE id='ibo-dict'",
+    ).first<{ summary: string; notes: string; licence: string }>();
+    expect(resource?.summary).toContain('25,500');
+    expect(resource?.notes).toContain('contact information');
+    expect(resource?.licence).toContain('CC BY 4.0');
+  });
+  it('renders homepage progress from D1 and prevents stale managed HTML', async () => {
+    await env.DB.prepare(
+      "UPDATE roadmap_phases SET status='On Hold' WHERE id='phase-0'",
+    ).run();
+    try {
+      const response = await mf.dispatchFetch('https://igbo.ai/');
+      expect(response.headers.get('Cache-Control')).toBe('no-store');
+      const html = await response.text();
+      expect(html).toContain('On Hold');
+      expect(html).toContain('INITIAL LANDSCAPE REVIEW COMPLETE');
+    } finally {
+      await env.DB.prepare(
+        "UPDATE roadmap_phases SET status='In Progress' WHERE id='phase-0'",
+      ).run();
+    }
+  });
+  it('allows production public indexing while private administration remains noindex', async () => {
+    for (const path of [
+      '/',
+      '/robots.txt',
+      '/updates/igbo-ai-landscape-review-v0-1',
+    ]) {
+      const response = await mf.dispatchFetch(
+        `https://igbo.ai/test-production${path}`,
+      );
+      expect(response.status).toBe(200);
+      expect(response.headers.get('X-Robots-Tag')).toBeNull();
+      if (path === '/robots.txt')
+        expect(await response.text()).not.toContain('Disallow: /\n');
+      if (path.startsWith('/updates'))
+        expect(await response.text()).not.toContain('name="robots"');
+    }
+    const admin = await mf.dispatchFetch(
+      'https://igbo.ai/test-production/admin/',
+    );
+    expect(admin.status).toBe(503);
+    expect(admin.headers.get('X-Robots-Tag')).toBe('noindex, nofollow');
+  });
   it('migrates the initial review without marking the whole phase complete', async () => {
     const rows = (await (
       await mf.dispatchFetch('https://igbo.ai/api/public/roadmap')
