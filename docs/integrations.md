@@ -2,11 +2,11 @@
 
 ## Email
 
-`EmailProvider` is independent of the frontend. `GatewayEmailProvider` sends HTTPS JSON to `EMAIL_ENDPOINT` using a bearer `EMAIL_API_KEY` and `Idempotency-Key` equal to the outbox ID.
+`EmailProvider` is independent of the frontend. `ResendEmailProvider` sends Resend-format HTTPS JSON to `EMAIL_ENDPOINT` (restricted to `https://api.resend.com/emails`) using a bearer `RESEND_API_KEY` and `Idempotency-Key` equal to the outbox ID.
 
-Request: `{ id, from, to, subject, text }`. A 2xx response means accepted. The gateway must deduplicate by `id`, use a verified sender and return failures honestly. Implement this contract as a small adapter for the selected transactional email provider; no provider is assumed or activated.
+Request: `{ from, to: [recipient], subject, text, reply_to }`. The outbox ID is carried in the Idempotency-Key header, not the JSON payload. A 2xx response means accepted by Resend, not proof of inbox delivery. Configure a verified sending domain and RESEND_API_KEY before delivery is active.
 
-Successful form submission stores acknowledgement and admin notification jobs in the same D1 batch. `waitUntil` attempts delivery after persistence. Failed delivery returns the job to `Pending`, with a maximum of five attempts. The optional scheduled handler retries pending jobs. A crashed delivery can leave a `Sending` job: an operator must inspect the provider by idempotency key and recover the job without creating a second message. Before high-volume launch, add timestamp-based lease recovery and a dedicated queue consumer. Do not log message bodies or recipient details.
+Successful form submission stores acknowledgement and admin notification jobs in the same D1 batch. `waitUntil` attempts delivery after persistence. Failed delivery returns the job to `Pending`, with a maximum of five attempts. The configured 15-minute scheduled handler retries pending jobs. A crashed delivery can leave a `Sending` job: an operator must inspect the provider by idempotency key and recover the job without creating a second message. Before high-volume launch, add timestamp-based lease recovery and a dedicated queue consumer. Do not log message bodies or recipient details.
 
 ## Payments
 
@@ -46,4 +46,4 @@ The schema includes experiment IDs, protocol/consent versions and anonymous resp
 
 ## Privacy-respectful analytics and monitoring
 
-No analytics vendor or remote monitoring endpoint is configured. Workers observability records safe event codes and opaque IDs. Do not add request bodies, tokens, email addresses or payment data to logs. An analytics adapter can record coarse events (`collaboration_submit`, `support_open`, `lab_interest`) after owner approval; do not attach identity, messages or recordings. No advertising identifiers or cross-site profiles should be introduced.
+Cloudflare Web Analytics is the sole allowed analytics integration. The Worker injects its beacon only into production public HTML with a configured CLOUDFLARE_ANALYTICS_TOKEN. Staging and admin are excluded. No marketing pixels or extra analytics event adapter is enabled. Workers observability records safe event codes and opaque IDs, not request bodies, tokens, email addresses or payment data. See launch-readiness.md for missing account setup.

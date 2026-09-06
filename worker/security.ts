@@ -95,7 +95,7 @@ export async function protectForm(
   if (!env.TURNSTILE_SECRET_KEY || !env.TURNSTILE_SITE_KEY)
     throw new HTTPError(
       503,
-      'The enquiry service is being prepared. Please contact support@igbo.ai in the meantime.',
+      'The enquiry service is being prepared. Please email collaborate@igbo.ai or sponsorship@igbo.ai in the meantime.',
     );
   const key = await hash(
     `${request.headers.get('CF-Connecting-IP') || 'unknown'}:${Math.floor(Date.now() / 600000)}`,
@@ -135,6 +135,7 @@ export async function protectForm(
     action?: string;
   };
   if (
+    !response.ok ||
     !result.success ||
     result.hostname !== new URL(env.SITE_URL).hostname ||
     result.action !== 'submit'
@@ -165,7 +166,7 @@ export function secure(response: Response, privateResponse = false) {
   );
   headers.set(
     'Content-Security-Policy',
-    "default-src 'self'; script-src 'self' https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; connect-src 'self' https://challenges.cloudflare.com; frame-src https://challenges.cloudflare.com; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'",
+    "default-src 'self'; script-src 'self' https://challenges.cloudflare.com https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; connect-src 'self' https://challenges.cloudflare.com https://cloudflareinsights.com; frame-src https://challenges.cloudflare.com; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'",
   );
   if (privateResponse) {
     headers.set('Cache-Control', 'no-store');

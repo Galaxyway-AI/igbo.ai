@@ -24,6 +24,7 @@ const contact = {
   email: z.string().email().max(254),
   organisation: short,
   message: z.string().min(20).max(4000),
+  age_confirmed: z.literal(true),
   contact_consent: z.literal(true),
   privacy_consent: z.literal(true),
   'cf-turnstile-response': z.string().max(2048).optional(),

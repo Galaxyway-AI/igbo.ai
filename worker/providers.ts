@@ -44,7 +44,7 @@ export interface PaymentProvider {
     cancelUrl: string;
   }): Promise<{ url: string; reference: string }>;
 }
-export class GatewayEmailProvider implements EmailProvider {
+export class ResendEmailProvider implements EmailProvider {
   constructor(private env: AppEnv) {}
   async send(message: {
     id: string;
@@ -52,15 +52,22 @@ export class GatewayEmailProvider implements EmailProvider {
     subject: string;
     text: string;
   }) {
-    requireHTTPS(this.env.EMAIL_ENDPOINT);
+    if (this.env.EMAIL_ENDPOINT !== 'https://api.resend.com/emails')
+      throw Error('Resend endpoint is not configured');
     const response = await fetch(this.env.EMAIL_ENDPOINT, {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${this.env.EMAIL_API_KEY}`,
+        Authorization: `Bearer ${this.env.RESEND_API_KEY}`,
         'Content-Type': 'application/json',
         'Idempotency-Key': message.id,
       },
-      body: JSON.stringify({ ...message, from: this.env.EMAIL_FROM }),
+      body: JSON.stringify({
+        from: this.env.EMAIL_FROM,
+        to: [message.to],
+        subject: message.subject,
+        text: message.text,
+        reply_to: 'kedu@igbo.ai',
+      }),
       signal: AbortSignal.timeout(10000),
     });
     if (!response.ok) throw Error('Email delivery failed');
@@ -100,8 +107,8 @@ function requireHTTPS(endpoint: string) {
   }
 }
 export async function deliverOutbox(env: AppEnv) {
-  if (!env.EMAIL_ENDPOINT || !env.EMAIL_API_KEY || !env.EMAIL_FROM) return;
-  const provider = new GatewayEmailProvider(env);
+  if (!env.EMAIL_ENDPOINT || !env.RESEND_API_KEY || !env.EMAIL_FROM) return;
+  const provider = new ResendEmailProvider(env);
   const { results } = await env.DB.prepare(
     "SELECT * FROM email_outbox WHERE status='Pending' AND attempts<5 ORDER BY created_at LIMIT 20",
   ).all<{ id: string; recipient: string; subject: string; body: string }>();

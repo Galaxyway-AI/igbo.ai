@@ -48,6 +48,7 @@ beforeAll(async () => {
       d1Databases: ['DB'],
       bindings: {
         ENVIRONMENT: 'staging',
+        CLOUDFLARE_ANALYTICS_TOKEN: '0123456789abcdef0123456789abcdef',
         SITE_URL: 'https://staging.example.org',
       },
       serviceBindings: {
@@ -56,8 +57,8 @@ beforeAll(async () => {
             new URL(request.url).pathname.includes('article-template')
               ? articleFixture
               : new URL(request.url).pathname.startsWith('/support')
-                ? '<html><body><div id="support-opening">Opening soon</div><form id="support-form"><input name="amount"><button>Continue to secure checkout</button></form></body></html>'
-                : '<!doctype html><html><body><div id="landscape-reviewed"></div><table><tbody id="landscape-rows"></tbody></table><div id="roadmap-phases"></div><div id="homepage-roadmap"></div><div id="updates-list"></div><div id="latest-research"></div><span data-tech-status>Planned</span></body></html>',
+                ? '<html><head></head><body><div id="support-opening">Opening soon</div><form id="support-form"><input name="amount"><button>Continue to secure checkout</button></form></body></html>'
+                : '<!doctype html><html><head></head><body><div id="landscape-reviewed"></div><table><tbody id="landscape-rows"></tbody></table><div id="roadmap-phases"></div><div id="homepage-roadmap"></div><div id="updates-list"></div><div id="latest-research"></div><span data-tech-status>Planned</span></body></html>',
             { headers: { 'Content-Type': 'text/html' } },
           ),
       },
@@ -75,12 +76,27 @@ beforeAll(async () => {
     '0003_landscape_review.sql',
     '0004_ibo_dict.sql',
     '0005_ibo_dict_article_reference.sql',
+    '0006_launch_preparation.sql',
   ]);
 }, 30000);
 afterAll(async () => {
   await mf?.dispose();
 });
 describe('Phase 2 research activation', () => {
+  it('injects only configured Cloudflare analytics on production public HTML', async () => {
+    const production = await mf.dispatchFetch(
+      'https://igbo.ai/test-production/',
+    );
+    expect(await production.text()).toContain(
+      'https://static.cloudflareinsights.com/beacon.min.js',
+    );
+    const staging = await mf.dispatchFetch('https://igbo.ai/');
+    expect(await staging.text()).not.toContain('beacon.min.js');
+    const admin = await mf.dispatchFetch(
+      'https://igbo.ai/test-production/admin/',
+    );
+    expect(await admin.text()).not.toContain('beacon.min.js');
+  });
   it('removes disabled checkout from response HTML, including when provider configuration is missing', async () => {
     for (const flag of ['false', 'true']) {
       await env.DB.prepare(

@@ -16,7 +16,7 @@ import {
 } from './validation';
 import { adminAPI } from './admin';
 import { publicAPI, articlePage } from './public';
-import { managedContent } from './content';
+import { managedContent, analytics } from './content';
 import { deliverOutbox, GatewayPaymentProvider } from './providers';
 async function settings(env: AppEnv) {
   const { results } = await env.DB.prepare(
@@ -31,6 +31,16 @@ export default {
     ctx: ExecutionContext,
   ): Promise<Response> {
     const url = new URL(request.url);
+    if (env.ENVIRONMENT === 'production' && url.hostname === 'www.igbo.ai') {
+      url.hostname = 'igbo.ai';
+      url.protocol = 'https:';
+      return secure(
+        new Response(null, {
+          status: 308,
+          headers: { Location: url.toString() },
+        }),
+      );
+    }
     let path: string;
     try {
       path = decodeURIComponent(url.pathname).replace(/\/$/, '') || '/';
@@ -58,7 +68,9 @@ export default {
         return secure(
           Response.json({
             turnstileSiteKey: env.TURNSTILE_SITE_KEY,
-            formsEnabled: state.forms_enabled === 'true',
+            formsEnabled:
+              state.forms_enabled === 'true' &&
+              Boolean(env.TURNSTILE_SITE_KEY && env.TURNSTILE_SECRET_KEY),
             paymentsEnabled:
               state.payments_enabled === 'true' &&
               Boolean(
@@ -92,7 +104,7 @@ export default {
           if (state.forms_enabled !== 'true')
             throw new HTTPError(
               503,
-              'Expressions of interest are not open on this preview yet. Please contact support@igbo.ai.',
+              'The enquiry service is temporarily unavailable. Please email collaborate@igbo.ai or sponsorship@igbo.ai.',
             );
           const body = await readJSON(request);
           const data = path.endsWith('collaborate')
@@ -103,6 +115,7 @@ export default {
           const entries = Object.entries(data).filter(
             ([key]) =>
               ![
+                'age_confirmed',
                 'contact_consent',
                 'privacy_consent',
                 'cf-turnstile-response',
@@ -115,7 +128,11 @@ export default {
             env.DB.prepare(
               `INSERT INTO ${table}(id,${entries.map(([k]) => k).join(',')}) VALUES (?,${entries.map(() => '?').join(',')})`,
             ).bind(id, ...entries.map(([, v]) => v)),
-            ...['contact', 'privacy'].map((purpose) =>
+            ...[
+              'contact_acknowledgement',
+              'privacy_notice',
+              'age_18_confirmation',
+            ].map((purpose) =>
               env.DB.prepare(
                 'INSERT INTO consent_records(id,subject_id,purpose,version,granted) VALUES(?,?,?,?,1)',
               ).bind(crypto.randomUUID(), id, purpose, state.consent_version),
@@ -127,8 +144,10 @@ export default {
             ).bind(
               crypto.randomUUID(),
               data.email,
-              'Your expression of interest — Igbo AI',
-              'Thank you for your interest in Igbo AI. Your enquiry has been received. Our team will review it and respond when appropriate.\n\nIgbo AI is an open language technology initiative led by Galaxyway AI.',
+              table === 'collaborators'
+                ? 'Your collaboration enquiry — Igbo AI'
+                : 'Your sponsorship enquiry — Igbo AI',
+              'Thank you for your interest in Igbo AI. Your enquiry has been received. Our team will review it and respond when appropriate.\n\nIgbo AI is an open language technology initiative operated and led by Galaxyway AI Ltd.',
             ),
           );
           if (env.ADMIN_NOTIFICATION_EMAIL)
@@ -231,7 +250,11 @@ export default {
       }
       if (path.startsWith('/updates/')) {
         const article = await articlePage(path.slice(9), env);
-        if (article) return secure(article, env.ENVIRONMENT !== 'production');
+        if (article)
+          return secure(
+            analytics(article, env),
+            env.ENVIRONMENT !== 'production',
+          );
       }
       if (path === '/sitemap.xml') {
         const base = [
@@ -301,7 +324,7 @@ export default {
           path.startsWith('/technology/'))
       )
         response = await managedContent(path, response, env);
-      const secured = secure(response);
+      const secured = secure(analytics(response, env));
       if (env.ENVIRONMENT !== 'production')
         secured.headers.set('X-Robots-Tag', 'noindex, nofollow');
       return secured;

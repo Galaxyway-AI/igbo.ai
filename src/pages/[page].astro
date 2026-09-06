@@ -1,12 +1,13 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import PageHero from '../components/PageHero.astro';
+import { legalPages } from '../data/legal';
 const pages = {
   about: {
     eyebrow: 'ABOUT IGBO AI',
     title: 'An open initiative. A lasting foundation.',
     description:
-      'Igbo AI is an open language technology initiative led by Galaxyway AI.',
+      'Igbo AI is an open language technology initiative operated and led by Galaxyway AI Ltd.',
     sections: [
       [
         'Our mission',
@@ -34,7 +35,7 @@ const pages = {
     sections: [
       [
         'Informed consent',
-        'Before any voice collection opens, contributors must understand the proposed uses, including research, training, synthesis, recognition, generative AI, redistribution and any commercial use. Retention and withdrawal limits must be explained explicitly.',
+        'Before any voice collection opens, intended uses must be separately explained and recorded: ASR training, TTS training, generative AI, linguistic research, benchmarks, model evaluation, open datasets, open-source models and commercial downstream applications where the applicable licence permits. One vague “AI training” checkbox is not sufficient. A final Voice Contributor Agreement is not yet published.',
       ],
       [
         'Voice rights & provenance',
@@ -54,7 +55,7 @@ const pages = {
       ],
       [
         'Privacy & withdrawal',
-        'Personal contact information should be separated from research responses where practical. Contributor terms must state retention, access controls and the practical limits of withdrawing data after a permitted public release.',
+        'No voice collection is active. Future contributors should generally be able to request withdrawal of unreleased raw or identifiable recordings where reasonably practicable. Future terms must explain that complete removal may no longer be technically possible after lawful open release or incorporation into distributed trained model weights.',
       ],
       [
         'Dataset governance',
@@ -66,66 +67,7 @@ const pages = {
       ],
     ],
   },
-  privacy: {
-    eyebrow: 'PRIVACY / PRE-LAUNCH NOTICE',
-    title: 'Your information deserves care.',
-    description:
-      'This notice describes the intended platform data flows. The receiving legal entity, retention schedule and final privacy policy must be approved before public data collection opens.',
-    sections: [
-      [
-        'Information you choose to share',
-        'Collaboration and sponsorship forms collect contact details, professional context and your message. Optional fields can be left blank. No voice collection is active.',
-      ],
-      [
-        'Purpose and access',
-        'Submitted information is used to review expressions of interest and respond to enquiries. Access is restricted to authorised project administrators. Turnstile may process technical information to prevent automated abuse.',
-      ],
-      [
-        'Supporter privacy',
-        'Supporter acknowledgement is optional, private by default and subject to approval. Payment processing will take place through a configured payment provider; this application does not store raw card details.',
-      ],
-      [
-        'Storage and service providers',
-        'The intended infrastructure uses Cloudflare Workers and D1. Configured email and payment providers may process information necessary to deliver their services. Final provider names, transfer details and retention periods must be published before collection is enabled.',
-      ],
-      [
-        'Your choices',
-        'You may decline optional fields and remain publicly anonymous. Privacy requests may be directed to support@igbo.ai. The final policy will specify the responsible entity and applicable rights.',
-      ],
-      [
-        'Cookies and analytics',
-        'No advertising or invasive profiling is included. Cloudflare Access may use an authentication cookie for administrators, and Turnstile may use security mechanisms. Optional analytics are disabled until configured and reviewed.',
-      ],
-    ],
-  },
-  terms: {
-    eyebrow: 'TERMS / PRE-LAUNCH NOTICE',
-    title: 'Clear expectations, from the start.',
-    description:
-      'These preliminary usage principles require owner approval and receiving entity details before production launch.',
-    sections: [
-      [
-        'Research status',
-        'Igbo AI is in planning and research. Planned technologies and interface previews are not released models or guarantees of future results.',
-      ],
-      [
-        'Contributions and collaboration',
-        'Submitting an expression of interest does not establish employment, a partnership, ownership rights or a contract. Research contributions, attribution and licences require separate agreement.',
-      ],
-      [
-        'Support',
-        'Support is for an initiative led by Galaxyway AI. It is not represented as a charitable donation. Payment provider terms, receiving entity information and applicable refund terms must be supplied before payment collection is enabled.',
-      ],
-      [
-        'Responsible use',
-        'Do not submit information you lack permission to share, abusive content or sensitive recordings. Voice collection and AI inference are not active in this release by default.',
-      ],
-      [
-        'External resources',
-        'External research resources remain subject to their respective owners’ terms and licences. Mentioning them does not imply endorsement or partnership.',
-      ],
-    ],
-  },
+  ...legalPages,
   'open-source': {
     eyebrow: 'OPEN SOURCE',
     title: 'Useful foundations should be reusable.',
@@ -193,6 +135,15 @@ const page = pages[Astro.params.page as keyof typeof pages];
             <>
               <h2>{title}</h2>
               <p>{body}</p>
+              {Astro.params.page === 'privacy' && title === 'Your rights' && (
+                <a href="mailto:support@igbo.ai">Contact privacy support →</a>
+              )}
+              {Astro.params.page === 'terms' && title === 'Privacy' && (
+                <a href="/privacy">Privacy Policy →</a>
+              )}
+              {title === 'Contact' && (
+                <a href="mailto:kedu@igbo.ai">Email kedu@igbo.ai →</a>
+              )}
             </>
           </section>
         ))

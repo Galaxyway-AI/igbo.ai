@@ -137,3 +137,22 @@ export async function managedContent(
   rendered.headers.set('Cache-Control', 'no-store');
   return rendered;
 }
+
+export function analytics(response: Response, env: AppEnv) {
+  if (
+    env.ENVIRONMENT !== 'production' ||
+    !/^[a-f0-9]{32}$/.test(env.CLOUDFLARE_ANALYTICS_TOKEN || '') ||
+    !response.headers.get('Content-Type')?.includes('text/html')
+  )
+    return response;
+  return new HTMLRewriter()
+    .on('head', {
+      element(el) {
+        el.append(
+          `<script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token":"${env.CLOUDFLARE_ANALYTICS_TOKEN}"}'></script>`,
+          { html: true },
+        );
+      },
+    })
+    .transform(response);
+}

@@ -170,8 +170,11 @@ test('support availability and dataset governance are visible', async ({
     page.getByRole('button', { name: '£25', exact: true }),
   ).toBeHidden();
   await expect(
-    page.getByRole('link', { name: 'Email support@igbo.ai ↗', exact: true }),
-  ).toHaveAttribute('href', 'mailto:support@igbo.ai');
+    page.getByRole('link', {
+      name: 'Email sponsorship@igbo.ai ↗',
+      exact: true,
+    }),
+  ).toHaveAttribute('href', 'mailto:sponsorship@igbo.ai');
   await page.goto('/ethics/');
   await expect(
     page.getByRole('heading', { name: 'Dataset governance', exact: true }),

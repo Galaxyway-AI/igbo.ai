@@ -34,6 +34,7 @@ const valid = {
   email: 'ada@example.org',
   collaboration_type: 'Native speaker',
   message: 'I would like to help review Igbo pronunciation.',
+  age_confirmed: true,
   contact_consent: true,
   privacy_consent: true,
   'cf-turnstile-response': 'verified-token',
@@ -229,7 +230,7 @@ describe('public API and persistence', () => {
     )
       .bind(id)
       .all();
-    expect(consents.results).toHaveLength(2);
+    expect(consents.results).toHaveLength(3);
     expect(
       await env.DB.prepare('SELECT status FROM email_outbox WHERE recipient=?')
         .bind(valid.email)

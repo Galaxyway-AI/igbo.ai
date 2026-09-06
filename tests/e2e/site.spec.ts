@@ -52,12 +52,15 @@ test('collaboration form preserves input when service unavailable', async ({
   await page
     .getByLabel('How would you like to contribute? *')
     .fill('I would like to help evaluate Igbo speech pronunciation.');
-  await page.getByLabel('I agree to be contacted').check();
-  await page.getByLabel('I have read the privacy notice').check();
+  await page.getByLabel('I understand the project may contact me').check();
+  await page.getByLabel('I have read the Privacy Policy').check();
+  await page.getByLabel('I confirm that I am 18 or over.').check();
   await page
     .getByRole('button', { name: 'Send expression of interest' })
     .click();
-  await expect(page.getByRole('status')).toContainText('not open');
+  await expect(page.getByRole('status')).toContainText(
+    /unavailable|being prepared|security check/,
+  );
   await expect(page.getByLabel('Full name *')).toHaveValue('Ada Example');
 });
 test('support page clearly holds checkout while payments are unavailable', async ({
@@ -71,7 +74,7 @@ test('support page clearly holds checkout while payments are unavailable', async
     page.getByRole('button', { name: 'Continue to secure checkout' }),
   ).toBeHidden();
   await expect(
-    page.getByRole('link', { name: 'Email support@igbo.ai' }),
+    page.getByRole('link', { name: 'Email sponsorship@igbo.ai' }),
   ).toBeVisible();
 });
 test('technology navigation and individual technical content are available', async ({

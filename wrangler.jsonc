@@ -2,6 +2,11 @@
   "$schema": "./node_modules/wrangler/config-schema.json",
   "name": "igbo-ai",
   "main": "worker/index.ts",
+  "workers_dev": false,
+  "routes": [
+    { "pattern": "igbo.ai", "custom_domain": true },
+    { "pattern": "www.igbo.ai", "custom_domain": true },
+  ],
   "compatibility_date": "2026-09-05",
   "assets": {
     "directory": "./dist",
@@ -16,7 +21,7 @@
     {
       "binding": "DB",
       "database_name": "igbo-ai",
-      "database_id": "00000000-0000-0000-0000-000000000000",
+      "database_id": "7cd832cb-b03c-4bd4-b242-873d9638c52a",
       "migrations_dir": "migrations",
     },
   ],
@@ -27,15 +32,20 @@
     "ACCESS_TEAM_DOMAIN": "",
     "ACCESS_AUD": "",
     "ADMIN_EMAILS": "admin@igbo.ai",
-    "EMAIL_ENDPOINT": "",
-    "EMAIL_FROM": "",
-    "ADMIN_NOTIFICATION_EMAIL": "",
+    "EMAIL_ENDPOINT": "https://api.resend.com/emails",
+    "EMAIL_FROM": "Igbo AI <kedu@igbo.ai>",
+    "ADMIN_NOTIFICATION_EMAIL": "kedu@igbo.ai",
     "PAYMENT_ENDPOINT": "",
     "AI_ENDPOINT": "",
+    "CLOUDFLARE_ANALYTICS_TOKEN": "",
   },
+  "triggers": { "crons": ["*/15 * * * *"] },
   "env": {
     "staging": {
       "name": "igbo-ai-staging",
+      "workers_dev": true,
+      "routes": [],
+      "triggers": { "crons": ["*/15 * * * *"] },
       "vars": {
         "ENVIRONMENT": "staging",
         "SITE_URL": "https://igbo-ai-staging.emailgalaxyway.workers.dev",
@@ -43,11 +53,12 @@
         "ACCESS_TEAM_DOMAIN": "emailgalaxyway.cloudflareaccess.com",
         "ACCESS_AUD": "72fbd4e78674f309cbfd17aa3381f55367e492b87c6b1d18161aaca8222461ad",
         "ADMIN_EMAILS": "admin@igbo.ai",
-        "EMAIL_ENDPOINT": "",
-        "EMAIL_FROM": "",
-        "ADMIN_NOTIFICATION_EMAIL": "",
+        "EMAIL_ENDPOINT": "https://api.resend.com/emails",
+        "EMAIL_FROM": "Igbo AI <kedu@igbo.ai>",
+        "ADMIN_NOTIFICATION_EMAIL": "kedu@igbo.ai",
         "PAYMENT_ENDPOINT": "",
         "AI_ENDPOINT": "",
+        "CLOUDFLARE_ANALYTICS_TOKEN": "",
       },
       "d1_databases": [
         {

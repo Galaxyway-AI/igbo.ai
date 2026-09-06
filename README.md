@@ -12,7 +12,7 @@ An open language technology initiative led by Galaxyway AI. This repository cont
 - Privacy-first supporter preferences, modular checkout gateway, signed payment webhook and public listing rules.
 - Lab UI previews for conversation, speech and blind evaluation. Voice collection and inference remain disabled.
 
-This is a locally testable implementation, not an already connected production service. Collection defaults to **off** because receiving entity details and policies still need owner approval. No production resources are created by local setup.
+Legal policies and operating-company information are prepared. See [launch readiness](docs/launch-readiness.md) for remaining credentials and activation checks. Forms fail closed without Turnstile; payments, voice and inference remain disabled. Production must not be deployed without explicit owner approval.
 
 ## Stack and structure
 
@@ -57,7 +57,7 @@ Copy `.env.example` to `.dev.vars` for local secrets. Non-secret values live in 
 
 The initial seed contains only the brief's planned phases and project statuses. There are no invented supporters, donations, publications, benchmarks or partnerships.
 
-Use `npm run db:local` for local state. For each remote environment, create a D1 database with Wrangler, replace the placeholder database ID in that environment, then apply migrations to the matching remote binding. Verify the environment and database name before running remote migrations. Database schema changes should be backward compatible and backed up separately from Worker code rollbacks.
+Use `npm run db:local` for local state. For each remote environment, create a D1 database with Wrangler, use the recorded database ID for that environment, then apply migrations to the matching remote binding. Verify the environment and database name before running remote migrations. Database schema changes should be backward compatible and backed up separately from Worker code rollbacks.
 
 ## Cloudflare deployment
 
