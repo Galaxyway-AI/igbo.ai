@@ -165,7 +165,7 @@ test('support availability and dataset governance are visible', async ({
   await expect(page.locator('#support-opening')).toContainText(
     'No payments are currently being collected through this website.',
   );
-  await expect(page.locator('#support-form')).toBeHidden();
+  await expect(page.locator('#support-form')).toHaveCount(0);
   await expect(
     page.getByRole('button', { name: '£25', exact: true }),
   ).toBeHidden();
@@ -207,6 +207,15 @@ test('deployed public HTML is noindex and canonical to production', async ({
     expect(await response.text()).toContain('https://igbo.ai');
   }
   const sitemap = await (await request.get('/sitemap.xml')).text();
+  const support = await (await request.get('/support/')).text();
+  expect(support).not.toContain('id="support-form"');
+  expect(support).not.toContain('Continue to secure checkout');
+  const article = await (
+    await request.get('/updates/igbo-ai-landscape-review-v0-1')
+  ).text();
+  expect(article).toContain(
+    'https://huggingface.co/datasets/nkowaokwu/ibo-dict',
+  );
   expect(sitemap).not.toContain('/admin');
   expect(sitemap).not.toContain('article-template');
   expect(sitemap).not.toContain('workers.dev');

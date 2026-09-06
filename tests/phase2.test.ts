@@ -55,7 +55,9 @@ beforeAll(async () => {
           new Response(
             new URL(request.url).pathname.includes('article-template')
               ? articleFixture
-              : '<!doctype html><html><body><div id="landscape-reviewed"></div><table><tbody id="landscape-rows"></tbody></table><div id="roadmap-phases"></div><div id="homepage-roadmap"></div><div id="updates-list"></div><div id="latest-research"></div><span data-tech-status>Planned</span></body></html>',
+              : new URL(request.url).pathname.startsWith('/support')
+                ? '<html><body><div id="support-opening">Opening soon</div><form id="support-form"><input name="amount"><button>Continue to secure checkout</button></form></body></html>'
+                : '<!doctype html><html><body><div id="landscape-reviewed"></div><table><tbody id="landscape-rows"></tbody></table><div id="roadmap-phases"></div><div id="homepage-roadmap"></div><div id="updates-list"></div><div id="latest-research"></div><span data-tech-status>Planned</span></body></html>',
             { headers: { 'Content-Type': 'text/html' } },
           ),
       },
@@ -72,12 +74,42 @@ beforeAll(async () => {
     '0002_research_metadata.sql',
     '0003_landscape_review.sql',
     '0004_ibo_dict.sql',
+    '0005_ibo_dict_article_reference.sql',
   ]);
 }, 30000);
 afterAll(async () => {
   await mf?.dispose();
 });
 describe('Phase 2 research activation', () => {
+  it('removes disabled checkout from response HTML, including when provider configuration is missing', async () => {
+    for (const flag of ['false', 'true']) {
+      await env.DB.prepare(
+        "UPDATE site_settings SET value=? WHERE key='payments_enabled'",
+      )
+        .bind(flag)
+        .run();
+      for (const path of ['/support/', '/support/index.html']) {
+        const response = await mf.dispatchFetch('https://igbo.ai' + path);
+        expect(response.status).toBe(200);
+        expect(response.headers.get('Cache-Control')).toBe('no-store');
+        const html = await response.text();
+        expect(html).toContain('Opening soon');
+        expect(html).not.toContain('support-form');
+        expect(html).not.toContain('Continue to secure checkout');
+      }
+    }
+    await env.DB.prepare(
+      "UPDATE site_settings SET value='false' WHERE key='payments_enabled'",
+    ).run();
+  });
+  it('includes ibo-dict in the published article references', async () => {
+    const response = await mf.dispatchFetch(
+      'https://igbo.ai/updates/igbo-ai-landscape-review-v0-1',
+    );
+    expect(await response.text()).toContain(
+      'https://huggingface.co/datasets/nkowaokwu/ibo-dict',
+    );
+  });
   it('maintains thirteen distinct sources including the gated ibo-dict dataset', async () => {
     const rows = await env.DB.prepare(
       "SELECT id FROM resources WHERE status='Published'",

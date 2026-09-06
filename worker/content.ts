@@ -7,6 +7,23 @@ export async function managedContent(
   env: AppEnv,
 ) {
   let rewriter = new HTMLRewriter();
+  if (path === '/support' || path === '/support/index.html') {
+    const enabled = await env.DB.prepare(
+      "SELECT value FROM site_settings WHERE key='payments_enabled'",
+    ).first<string>('value');
+    if (
+      enabled !== 'true' ||
+      !env.PAYMENT_ENDPOINT ||
+      !env.PAYMENT_API_KEY ||
+      !env.PAYMENT_WEBHOOK_SECRET
+    ) {
+      rewriter = rewriter.on('#support-form', {
+        element(el) {
+          el.remove();
+        },
+      });
+    }
+  }
   if (path === '/research/landscape') {
     const data = await env.DB.prepare(
       "SELECT * FROM resources WHERE status='Published' ORDER BY category,title",

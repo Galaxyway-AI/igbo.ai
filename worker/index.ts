@@ -290,7 +290,14 @@ export default {
       let response = await env.ASSETS.fetch(request);
       if (
         response.ok &&
-        (['/', '/updates', '/roadmap', '/research/landscape'].includes(path) ||
+        ([
+          '/',
+          '/updates',
+          '/roadmap',
+          '/research/landscape',
+          '/support',
+          '/support/index.html',
+        ].includes(path) ||
           path.startsWith('/technology/'))
       )
         response = await managedContent(path, response, env);

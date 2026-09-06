@@ -2,7 +2,7 @@
 
 Date: 5 September 2026.
 
-The sections below record the original launch baseline. See [Phase 2 corrections](phase-2-corrections.md) for the current staging release, and [Phase 2 verification](phase-2-verification.md) for the preceding release and production launch gate.
+The sections below record the original launch baseline. See [Final pre-production verification](final-preproduction-verification.md) for the current staging release and [Phase 2 corrections](phase-2-corrections.md) for the previous correction pass, and [Phase 2 verification](phase-2-verification.md) for the preceding release and production launch gate.
 
 ## Implemented and checked
 
