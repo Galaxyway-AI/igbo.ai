@@ -45,6 +45,13 @@ test('roadmap shows completed initial research while Phase 0 remains active', as
 test('collaboration form preserves input when service unavailable', async ({
   page,
 }) => {
+  await page.route('**/api/collaborate', (route) =>
+    route.fulfill({
+      status: 503,
+      contentType: 'application/json',
+      body: JSON.stringify({ error: 'Service unavailable. Please try again.' }),
+    }),
+  );
   await page.goto('/collaborate');
   await page.getByLabel('Full name *').fill('Ada Example');
   await page.getByLabel('Email *', { exact: true }).fill('ada@example.org');
