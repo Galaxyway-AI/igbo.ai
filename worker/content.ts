@@ -29,10 +29,12 @@ export async function managedContent(
       "SELECT * FROM resources WHERE status='Published' ORDER BY category,title",
     ).all<Record<string, string | number | null>>();
     const rows = data.results;
+    const field = (label: string, value: unknown) =>
+      value ? `<dt>${e(label)}</dt><dd>${e(String(value))}</dd>` : '';
     const html = rows
       .map(
         (r) =>
-          `<tr data-category="${e(String(r.category))}" data-access="${e(String(r.access_status))}"><th scope="row"><a href="${e(String(r.url))}" target="_blank" rel="noopener noreferrer">${e(String(r.title))} ↗</a><small>${e(String(r.organisation))}</small></th><td>${e(String(r.category))}</td><td>${e(String(r.summary))}</td><td>${e(String(r.licence))}${r.licence_url ? `<br><a href="${e(String(r.licence_url))}" target="_blank" rel="noopener noreferrer">Terms / licence ↗</a>` : ''}<details><summary>Assessment notes</summary><p>${e(String(r.notes))}</p></details></td><td><span class="status">${e(String(r.potential_role))}</span></td><td>${r.verified ? 'Source verified; reuse audit still required' : 'Initial assessment'}<small>Last reviewed: ${e(String(r.last_reviewed_at || 'Not recorded'))}</small></td></tr>`,
+          `<tr data-category="${e(String(r.category))}" data-access="${e(String(r.access_status))}"><th scope="row"><a href="${e(String(r.url))}" target="_blank" rel="noopener noreferrer">${e(String(r.title))} ↗</a><small>${e(String(r.organisation))}</small></th><td>${e(String(r.category))}</td><td>${e(String(r.summary))}<details><summary>Evidence and rights fields</summary><dl>${field('Resource type',r.resource_type)}${field('Provider',r.provider)}${field('Release / version',r.release_version)}${field('Publisher-reported coverage',r.publisher_coverage)}${field('Code licence',r.code_licence)}${field('Model-weight licence',r.model_licence)}${field('Dataset/content licence',r.dataset_licence)}${field('Training permission',r.training_permission)}${field('Redistribution / open-weight',r.redistribution_status)}${field('Commercial use',r.commercial_use)}${field('Contributor consent',r.contributor_consent)}${field('Provenance',r.provenance_status)}${field('Igbo AI evidence',r.evidence_status)}${field('Uncertainties',r.uncertainties)}</dl></details></td><td>${e(String(r.licence))}${r.licence_url ? `<br><a href="${e(String(r.licence_url))}" target="_blank" rel="noopener noreferrer">Terms / licence ↗</a>` : ''}<details><summary>Assessment notes</summary><p>${e(String(r.notes))}</p></details></td><td><span class="status">${e(String(r.potential_role))}</span></td><td>${r.verified ? 'Source verified; reuse audit still required' : 'Documentation reviewed; reuse audit still required'}<small>Last reviewed: ${e(String(r.last_reviewed_at || 'Not recorded'))}</small></td></tr>`,
       )
       .join('');
     const latest = rows
@@ -49,7 +51,7 @@ export async function managedContent(
         element(el) {
           el.setInnerContent(
             latest
-              ? `Last reviewed: ${e(latest)} (most recent resource review). Individual dates appear below.`
+              ? `Landscape review updated ${e(latest)}. Individual resource dates appear below.`
               : 'No review date recorded.',
             { html: true },
           );

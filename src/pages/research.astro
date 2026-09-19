@@ -64,6 +64,17 @@ import { hypothesis } from '../data/project';
         new research is warranted.
       </p>
     </div>
+  </section><section class="section container" id="method">
+    <div class="two-col"><div>
+      <span class="eyebrow">A CONTROLLED COMPARISON</span><h2>Measure the linguistic choices.</h2>
+    </div><div class="prose">
+      <p>We will compare plain orthographic input, reviewed tone-marked input and phoneme-plus-tone input using matched audio, data splits, model family and training conditions.</p>
+      <p>Manually reviewed gold annotations and automatically predicted annotations will be evaluated separately. Automatic tone restoration is useful only when downstream tests show that it helps without introducing meaning-changing errors.</p>
+      <p>ASR round-trip scores alone cannot establish TTS quality. A system can transcribe its own output while still sounding unnatural, changing tone or losing a meaning contrast.</p>
+    </div></div>
+    <div class="panel" style="margin-top:32px"><span class="eyebrow">BENCHMARK-FIRST SEQUENCE</span><ol>
+      <li>Review data rights, provenance and permissions.</li><li>Reproduce named baselines before changing the data.</li><li>Use a held-out challenge set and sealed future-audit material.</li><li>Run controlled experiments and blind native-speaker listening.</li><li>Report errors, uncertainty, operating latency and cost.</li><li>Publish limitations before expanding scope.</li>
+    </ol><p><strong>Evaluation dimensions:</strong> pronunciation and tone errors, meaning confusions, human transcription accuracy, naturalness and preference, omissions and repetitions, dialect-group results, WER/CER where relevant, latency and operating cost.</p><p>Exact release thresholds will be preregistered after baseline measurement and before final testing.</p></div>
   </section><section class="section container" id="landscape">
     <span class="eyebrow">THE EXISTING LANDSCAPE</span><h2>
       Important work already exists.

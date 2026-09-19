@@ -44,6 +44,16 @@ const flows =
       <span class="eyebrow">WHY DO WE NEED IT?</span><p>{details.why}</p>
     </div>
   </section>
+  <section class="section container">
+    <div class="panel">
+      {tech.slug === 'igbopronounce' && <><span class="eyebrow">FIRST-VERSION RECORD</span><p>Each record is intended to preserve a stable ID, source and normalised form, sense/context, variety label, phoneme and tone representations, authorised audio reference, provenance, permissions, reviewer decisions, confidence and revision history. A spelling may have multiple legitimate senses and pronunciations; alternatives will not be silently collapsed.</p></>}
+      {tech.slug === 'igbotone' && <><span class="eyebrow">UNCERTAINTY BY DESIGN</span><p>Original user text remains intact. Alternative readings, uncertainty and human override are first-class fields. Reviewed annotations are evaluated separately from automatic predictions, and restoration is useful only when it avoids meaning-changing errors.</p></>}
+      {tech.slug === 'igbophonemizer' && <><span class="eyebrow">HYBRID COMPARISON</span><p>We will compare reviewed lexicon lookup, linguistic rules and learned grapheme-to-phoneme mappings. IPA can support human review while a model consumes another documented token system. Names, code-switching and variety-specific rules belong in the error taxonomy.</p></>}
+      {tech.slug === 'igbospeechbench' && <><span class="eyebrow">PROPOSED PROTOCOL</span><p>Use speaker/session-disjoint splits, held-out and fresh audit material, blind presentation, randomised order, listener-group reporting, confidence intervals and disagreement reporting. Dialect familiarity or preference must be distinguished from linguistic correctness. No study or audio collection is active.</p></>}
+      {tech.slug === 'igbospeech' && <><span class="eyebrow">TWO DISTINCT TRACKS</span><p>TTS begins with one authorised voice; ASR begins by testing current systems before adapting to measured gaps. General research consent does not imply voice-synthesis permission. Restricted comparators may be evaluated in an isolated research track while the intended public release uses approved assets. Code licences do not override restrictions on weights or data.</p></>}
+      {tech.slug === 'igbolm' && <><span class="eyebrow">LATER-STAGE SCOPE</span><p>Begin with retrieval and tools, prompting and small supervised adaptations before considering larger training. Speech quality is not solved by pretraining a general text model; this component remains later-stage and task-specific.</p></>}
+    </div>
+  </section>
   <section class="section soft-section">
     <div class="container">
       <span class="eyebrow">CONCEPTUAL FLOW</span>

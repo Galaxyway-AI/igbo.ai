@@ -115,6 +115,15 @@ export async function articlePage(
         );
       },
     })
+    .on('#article-related', {
+      element(el) {
+        if (row.slug === 'igbo-ai-landscape-review-v0-1')
+          el.setInnerContent(
+            '<a class="text-link" href="/updates/igbo-ai-research-and-delivery-review-2026">Read the September 2026 research and delivery review →</a>',
+            { html: true },
+          );
+      },
+    })
     .transform(source);
   rendered.headers.delete('ETag');
   rendered.headers.delete('Last-Modified');
@@ -142,7 +151,7 @@ export async function publicAPI(path: string, env: AppEnv) {
     updates:
       "SELECT slug,title,summary,published_at FROM research_updates WHERE status='Published' ORDER BY published_at DESC",
     resources:
-      "SELECT id,title,organisation,summary,url,category,licence,licence_url,access_status,potential_role,notes,last_reviewed_at,verified,doi FROM resources WHERE status='Published'",
+      "SELECT id,title,organisation,summary,url,category,licence,licence_url,access_status,potential_role,notes,last_reviewed_at,verified,doi,resource_type,provider,release_version,publisher_coverage,code_licence,model_licence,dataset_licence,training_permission,redistribution_status,commercial_use,contributor_consent,provenance_status,evidence_status,uncertainties FROM resources WHERE status='Published'",
     campaigns:
       "SELECT title,summary,target_minor,verified_total_minor,currency FROM funding_campaigns WHERE status='Published'",
     organisations:

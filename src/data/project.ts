@@ -67,7 +67,7 @@ export const phases = [
     title: 'Landscape & Research',
     status: 'In Progress',
     description:
-      'Understand the foundations. Define the questions worth asking.',
+      'Complete research readiness, collaborator formation, rights review and a benchmark specification before delivery begins.',
     milestones: [
       'Initial Igbo AI technology landscape review — Completed',
       'Initial dataset and model inventory — Completed',
@@ -77,6 +77,7 @@ export const phases = [
       'Formal dataset provenance audit — Planned',
       'Academic and community consultation — Planned',
       'Initial benchmark specification — Planned',
+      'Bounded feasibility experiment — Planned',
     ],
   },
   {
@@ -84,11 +85,12 @@ export const phases = [
     title: 'Linguistic Foundation',
     status: 'Planned',
     description:
-      'Build a carefully annotated foundation for pronunciation, tone and dialect.',
+      'Create a bounded, reviewable pronunciation, tone and phonemizer foundation with provenance and permissions attached to every record.',
     milestones: [
       'Agree annotation guidelines',
       'Define consent and licensing requirements',
-      'Design the pronunciation resource',
+      'Design records for spelling, sense, variety, tone, phonemes, authorised audio, provenance and uncertainty',
+      'Pass annotation agreement and held-out pronunciation gate',
     ],
   },
   {
@@ -96,11 +98,12 @@ export const phases = [
     title: 'IgboSpeechBench',
     status: 'Planned',
     description:
-      'Establish transparent baselines and native-speaker evaluation.',
+      'Establish a versioned challenge set, blind native-speaker protocol and reproducible baseline report.',
     milestones: [
       'Publish a benchmark specification',
       'Design blind comparisons',
-      'Evaluate baseline systems',
+      'Evaluate baseline systems on names, tone contrasts, code-switching and contextual material',
+      'Keep sealed future-audit material separate from training',
     ],
   },
   {
@@ -108,11 +111,11 @@ export const phases = [
     title: 'IgboSpeech TTS',
     status: 'Planned',
     description:
-      'Test whether explicit linguistic supervision improves naturalness.',
+      'Test one authorised Standard Igbo voice under matched grapheme, reviewed-tone and phoneme-plus-tone conditions.',
     milestones: [
       'Train evidence-led prototypes',
       'Compare tone and phoneme supervision',
-      'Publish limitations and findings',
+      'Publish model card, operating profile, limitations and evidence gate',
     ],
   },
   {
@@ -120,11 +123,11 @@ export const phases = [
     title: 'Dialect Expansion',
     status: 'Planned',
     description:
-      'Expand representation in collaboration with dialect communities.',
+      'Consider two additional community-defined varieties with multiple principal speakers per variety.',
     milestones: [
       'Agree dialect review methodology',
       'Broaden speaker participation',
-      'Evaluate variety-specific performance',
+      'Evaluate variety-specific performance and community review',
     ],
   },
   {
@@ -132,11 +135,11 @@ export const phases = [
     title: 'IgboSpeech ASR',
     status: 'Planned',
     description:
-      'Explore recognition that respects the way people actually speak.',
+      'Test current ASR first, then adapt only to measured gaps across read, spontaneous, noisy and code-switched speech.',
     milestones: [
       'Establish transcription baselines',
       'Study names and code-switching',
-      'Evaluate with native speakers',
+      'Evaluate by slice with confidence handling and privacy controls',
     ],
   },
   {
@@ -144,11 +147,11 @@ export const phases = [
     title: 'Conversational Igbo AI',
     status: 'Planned',
     description:
-      'Bring language understanding and speech into a shared experience.',
+      'Start with one narrow adult-facing task and compare retrieval, tools, prompting and small adaptations before broad training.',
     milestones: [
       'Connect provider interfaces',
       'Study conversational quality',
-      'Release evidence-dependent experiments',
+      'Release only a bounded application with held-out scenarios, observable stages and task-specific limitations',
     ],
   },
 ];

@@ -77,6 +77,7 @@ beforeAll(async () => {
     '0004_ibo_dict.sql',
     '0005_ibo_dict_article_reference.sql',
     '0006_launch_preparation.sql',
+    '0007_september_2026_research_review.sql',
   ]);
 }, 30000);
 afterAll(async () => {
@@ -112,6 +113,7 @@ describe('Phase 2 research activation', () => {
         expect(html).toContain('Opening soon');
         expect(html).not.toContain('support-form');
         expect(html).not.toContain('Continue to secure checkout');
+        expect(html).not.toMatch(/[£$]\s?\d/);
       }
     }
     await env.DB.prepare(
@@ -126,11 +128,24 @@ describe('Phase 2 research activation', () => {
       'https://huggingface.co/datasets/nkowaokwu/ibo-dict',
     );
   });
-  it('maintains thirteen distinct sources including the gated ibo-dict dataset', async () => {
+  it('publishes the September research review and separated rights fields', async () => {
+    const article = await mf.dispatchFetch(
+      'https://igbo.ai/updates/igbo-ai-research-and-delivery-review-2026',
+    );
+    expect(article.status).toBe(200);
+    expect(await article.text()).toContain('What changed in the delivery direction');
+    const resource = await env.DB.prepare(
+      "SELECT code_licence,model_licence,dataset_licence,evidence_status FROM resources WHERE id='omnivoice'",
+    ).first<{ code_licence: string; model_licence: string; dataset_licence: string; evidence_status: string }>();
+    expect(resource?.code_licence).toContain('Apache');
+    expect(resource?.model_licence).toContain('CC BY-NC');
+    expect(resource?.evidence_status).toBe('Documentation reviewed');
+  });
+  it('maintains the expanded published source register including the gated ibo-dict dataset', async () => {
     const rows = await env.DB.prepare(
       "SELECT id FROM resources WHERE status='Published'",
     ).all();
-    expect(rows.results).toHaveLength(13);
+    expect(rows.results.length).toBeGreaterThanOrEqual(20);
     const resource = await env.DB.prepare(
       "SELECT summary,notes,licence FROM resources WHERE id='ibo-dict'",
     ).first<{ summary: string; notes: string; licence: string }>();
@@ -147,7 +162,7 @@ describe('Phase 2 research activation', () => {
       expect(response.headers.get('Cache-Control')).toBe('no-store');
       const html = await response.text();
       expect(html).toContain('On Hold');
-      expect(html).toContain('INITIAL LANDSCAPE REVIEW COMPLETE');
+      expect(html).toContain('Igbo AI Research and Delivery Review');
     } finally {
       await env.DB.prepare(
         "UPDATE roadmap_phases SET status='In Progress' WHERE id='phase-0'",
@@ -271,7 +286,7 @@ describe('Phase 2 research activation', () => {
       next: { title: string };
       activity: unknown[];
     };
-    expect(dashboard.metrics.updates.total).toBe(1);
+    expect(dashboard.metrics.updates.total).toBe(2);
     expect(dashboard.phase.status).toBe('In Progress');
     expect(dashboard.next.title).toContain('collaborator');
     expect(dashboard.activity.length).toBeGreaterThan(0);
